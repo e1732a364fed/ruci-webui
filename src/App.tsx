@@ -407,17 +407,25 @@ export default function App() {
       if (importData.inbounds) {
         const newInboundNodes: Node<ChainNodeData>[] = [];
         const newInboundEdges: Edge[] = [];
-        importData.inbounds.forEach((inbound: any, index: number) => {
+
+        // 为每个 chain 创建一列节点
+        importData.inbounds.forEach((inbound: any, chainIndex: number) => {
           let prevNodeId: string | null = null;
-          inbound.chain.forEach((item: any, chainIndex: number) => {
+          // 在这个 chain 中创建节点
+          inbound.chain.forEach((item: any, nodeIndex: number) => {
             const type = Object.keys(item)[0];
             const config = item[type];
-            const nodeId = `${type.toLowerCase()}-${Date.now()}-${index}-${chainIndex}`;
+            const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
 
             const node: Node<ChainNodeData> = {
               id: nodeId,
               type: "chainNode",
-              position: { x: 100 + chainIndex * 150, y: 100 + index * 150 },
+              // 每个 chain 占据一列，列之间间隔 300 像素
+              // 同一 chain 中的节点垂直排列，间隔 150 像素
+              position: {
+                x: 100 + chainIndex * 300,
+                y: 100 + nodeIndex * 150,
+              },
               data: {
                 type,
                 label: type,
@@ -447,17 +455,25 @@ export default function App() {
       if (importData.outbounds) {
         const newOutboundNodes: Node<ChainNodeData>[] = [];
         const newOutboundEdges: Edge[] = [];
-        importData.outbounds.forEach((outbound: any, index: number) => {
+
+        // 为每个 chain 创建一列节点
+        importData.outbounds.forEach((outbound: any, chainIndex: number) => {
           let prevNodeId: string | null = null;
-          outbound.chain.forEach((item: any, chainIndex: number) => {
+          // 在这个 chain 中创建节点
+          outbound.chain.forEach((item: any, nodeIndex: number) => {
             const type = Object.keys(item)[0];
             const config = item[type];
-            const nodeId = `${type.toLowerCase()}-${Date.now()}-${index}-${chainIndex}`;
+            const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
 
             const node: Node<ChainNodeData> = {
               id: nodeId,
               type: "chainNode",
-              position: { x: 100 + chainIndex * 150, y: 100 + index * 150 },
+              // 每个 chain 占据一列，列之间间隔 300 像素
+              // 同一 chain 中的节点垂直排列，间隔 150 像素
+              position: {
+                x: 100 + chainIndex * 300,
+                y: 100 + nodeIndex * 150,
+              },
               data: {
                 type,
                 label: type,
