@@ -41,6 +41,24 @@ const NodeConfigPanel = ({
     }
   }, [selectedNode, reset]);
 
+  // 处理新添加的节点，确保可选项不会自动填充
+  useEffect(() => {
+    if (
+      selectedNode &&
+      (!selectedNode.data.config ||
+        Object.keys(selectedNode.data.config).length === 0)
+    ) {
+      // 如果是新节点（没有配置或配置为空对象），则不自动填充可选项
+      reset(
+        {},
+        {
+          keepDefaultValues: false,
+          keepDirty: false,
+        }
+      );
+    }
+  }, [selectedNode, reset]);
+
   if (!selectedNode) {
     return (
       <Typography variant="body1" align="center">
@@ -50,6 +68,39 @@ const NodeConfigPanel = ({
   }
 
   const onSubmit = (data: any) => {
+    // 清理数据，移除所有 undefined 和 null 值
+    const cleanData = (obj: any): any => {
+      if (obj === null || obj === undefined) {
+        return undefined;
+      }
+
+      if (Array.isArray(obj)) {
+        const cleanedArray = obj
+          .map(cleanData)
+          .filter((item) => item !== undefined);
+        return cleanedArray.length > 0 ? cleanedArray : undefined;
+      }
+
+      if (typeof obj === "object") {
+        const cleanedObj: Record<string, any> = {};
+        let hasValidProps = false;
+
+        Object.entries(obj).forEach(([key, value]) => {
+          const cleanedValue = cleanData(value);
+          if (cleanedValue !== undefined) {
+            cleanedObj[key] = cleanedValue;
+            hasValidProps = true;
+          }
+        });
+
+        return hasValidProps ? cleanedObj : undefined;
+      }
+
+      return obj;
+    };
+
+    const cleanedData = cleanData(data) || {};
+
     const verifyNumberTypes = (obj: any, template: any) => {
       if (isNull(template)) {
         return true;
@@ -66,13 +117,13 @@ const NodeConfigPanel = ({
       });
     };
 
-    verifyNumberTypes(data, selectedNode.data.config);
+    verifyNumberTypes(cleanedData, selectedNode.data.config);
 
     onNodeUpdate({
       ...selectedNode,
       data: {
         ...selectedNode.data,
-        config: data,
+        config: cleanedData,
       },
     });
   };
@@ -89,29 +140,26 @@ const NodeConfigPanel = ({
     config: any,
     defaultConfig: any
   ): boolean => {
-    // 检查配置中是否存在该项
-    const configHasKey = _.has(config, key);
-
-    // 如果配置中已经存在该项，则不是可选项
-    if (configHasKey) {
-      return false;
-    }
-
     // 检查默认配置中的值
     const defaultValue = _.get(defaultConfig, key);
 
-    // 以下情况视为可选项：
-    // 1. 默认值为 null 或 undefined
-    // 2. 默认值为数组（无论是否为空）
-    // 3. 默认值为空对象
-    return (
+    const isOptionalType =
       defaultValue === null ||
       defaultValue === undefined ||
       Array.isArray(defaultValue) ||
       (typeof defaultValue === "object" &&
         defaultValue !== null &&
-        Object.keys(defaultValue).length === 0)
-    );
+        Object.keys(defaultValue).length === 0);
+
+    // 如果类型不是可选类型，直接返回 false
+    if (!isOptionalType) {
+      return false;
+    }
+
+    // 检查配置中是否已经存在该项
+    // 如果已存在且不是 undefined，则不显示为可选项
+    const configValue = _.get(config, key);
+    return configValue === undefined;
   };
 
   const renderConfigFields = (
@@ -128,7 +176,7 @@ const NodeConfigPanel = ({
       const isOptional = isOptionalProperty(key, config, defaultConfig);
 
       // 如果是可选项且配置中不存在该项，则显示"加入"按钮
-      if (isOptional && isConfigValueUndefined) {
+      if (isOptional) {
         return (
           <OptionalField
             key={currentPath}
@@ -534,8 +582,11 @@ const OptionalField = ({
   useEffect(() => {
     // 检查表单中是否已经有该字段的值
     const currentValue = getValues(path);
-    if (currentValue !== undefined) {
+    // 只有当值不是 undefined 且不是 null 时，才认为该字段已添加
+    if (currentValue !== undefined && currentValue !== null) {
       setIsAdded(true);
+    } else {
+      setIsAdded(false);
     }
   }, [getValues, path]);
 

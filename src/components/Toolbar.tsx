@@ -31,10 +31,68 @@ export const Toolbar = ({
     type: string,
     label: string,
     nodeCategory: "inbound" | "outbound",
-    defaultConfig: Record<string, any>
+    defaultConfig: Record<string, any>,
+    optionalFields: string[]
   ) => {
     const xOffset = Math.floor(Math.random() * 200) - 100;
     const yOffset = Math.floor(Math.random() * 200) - 100;
+
+    // 过滤掉可选项，只保留非可选项
+    const filterOptionalProperties = (
+      config: Record<string, any>,
+      optFields: string[],
+      path: string = ""
+    ): Record<string, any> => {
+      // 创建一个空对象作为结果
+      const result: Record<string, any> = {};
+
+      // 遍历配置对象的所有属性
+      Object.entries(config).forEach(([key, value]) => {
+        const currentPath = path ? `${path}.${key}` : key;
+
+        // 检查当前属性是否在可选字段列表中
+        const isOptional = optFields.some((field) => {
+          // 处理嵌套路径，例如 "http_config.headers"
+          if (field.includes(".")) {
+            return (
+              currentPath.startsWith(field) || field.startsWith(currentPath)
+            );
+          }
+          return field === key;
+        });
+
+        // 如果不是可选项，则添加到结果中
+        if (!isOptional) {
+          // 如果值是对象且不是数组，递归处理
+          if (
+            typeof value === "object" &&
+            value !== null &&
+            !Array.isArray(value)
+          ) {
+            // 对于嵌套对象，我们只保留其中的非可选属性
+            const filteredNestedConfig = filterOptionalProperties(
+              value,
+              optFields,
+              currentPath
+            );
+            // 只有当过滤后的嵌套配置不为空时，才添加到结果中
+            if (Object.keys(filteredNestedConfig).length > 0) {
+              result[key] = filteredNestedConfig;
+            }
+          } else {
+            result[key] = value;
+          }
+        }
+      });
+
+      return result;
+    };
+
+    // 过滤掉可选项，只保留非可选项
+    const filteredConfig = filterOptionalProperties(
+      defaultConfig,
+      optionalFields
+    );
 
     const newNode: Node<ChainNodeData> = {
       id: `${type.toLowerCase()}-${Date.now()}`,
@@ -45,7 +103,7 @@ export const Toolbar = ({
         label,
         category: nodeCategory,
         chainTag: "", // This will be set by the App component
-        config: defaultConfig,
+        config: filteredConfig,
       },
     };
     onAddNode(newNode);
@@ -186,7 +244,8 @@ export const Toolbar = ({
                 nodeType.type,
                 nodeType.label,
                 nodeType.category,
-                nodeType.defaultConfig
+                nodeType.defaultConfig,
+                nodeType.optional_fields
               )
             }
           >
