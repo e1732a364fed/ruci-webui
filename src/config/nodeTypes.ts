@@ -1,22 +1,39 @@
+export class Field {
+  value: any;
+  optional: boolean;
+
+  constructor(value: any, optional: boolean = false) {
+    this.value = value;
+    this.optional = optional;
+  }
+}
+
+// 创建必填字段的辅助函数
+export function required(value: any): Field {
+  return new Field(value, false);
+}
+
+// 创建可选字段的辅助函数
+export function optional(value: any): Field {
+  return new Field(value, true);
+}
+
 export class NodeTypeConfig {
   type: string;
   label: string;
   category: "inbound" | "outbound";
-  defaultConfig: Record<string, any>;
-  optional_fields: string[];
+  defaultConfig: Record<string, Field>;
 
   constructor(
     type: string,
     label: string,
     category: "inbound" | "outbound",
-    defaultConfig: Record<string, any>,
-    optional_fields: string[] = []
+    defaultConfig: Record<string, any>
   ) {
     this.type = type;
     this.label = label;
     this.category = category;
     this.defaultConfig = defaultConfig;
-    this.optional_fields = optional_fields;
   }
 }
 
@@ -64,57 +81,33 @@ export enum LookupIpStrategy {
   Ipv4thenIpv6 = "Ipv4thenIpv6",
 }
 
-export class BindDialerConfig {
-  bind_addr?: string;
-  dial_addr?: string;
-  dns_client?: DnsClientConfig | null;
-  in_auto_route?: InAutoRouteParams | null;
-  out_auto_route?: OutAutoRouteParams | null;
-  ext?: Ext | null;
-
-  constructor(
-    bind_addr?: string,
-    dial_addr?: string,
-    dns_client?: DnsClientConfig | null,
-    in_auto_route?: InAutoRouteParams | null,
-    out_auto_route?: OutAutoRouteParams | null,
-    ext?: Ext | null
-  ) {
-    this.bind_addr = bind_addr;
-    this.dial_addr = dial_addr;
-    this.dns_client = dns_client;
-    this.in_auto_route = in_auto_route;
-    this.out_auto_route = out_auto_route;
-    this.ext = ext;
-  }
-}
-
-export const BindDialerDefault = new BindDialerConfig(
-  "addr",
-  "",
-  {
-    dns_server_list: [],
+export const BindDialerDefault = {
+  bind_addr: optional("addr"),
+  dial_addr: optional(""),
+  dns_client: optional({
+    dns_server_list: optional([]),
     ip_strategy: LookupIpStrategy.Ipv4Only,
-    static_pairs: {},
-  },
-  {
+    static_pairs: optional({}),
+  }),
+  in_auto_route: optional({
     tun_dev_name: "dev",
     tun_gateway: "gate",
     router_ip: "ip",
     original_dev_name: "od",
-    direct_list: [],
-    dns_list: [],
-  },
-  {
+    direct_list: optional([]),
+    dns_list: optional([]),
+  }),
+  out_auto_route: optional({
     tun_dev_name: "",
     original_dev_name: "",
     router_ip: "",
-  },
-  {
-    fixed_target_addr: "",
-    pre_defined_early_data: "abc",
-  }
-);
+  }),
+  ext: optional({
+    fixed_target_addr: optional(""),
+    pre_defined_early_data: optional("abc"),
+  }),
+  // xx: optional({ xx: optional({ xx: optional({ xx: optional(1) }) }) }),
+};
 
 export class Ext {
   fixed_target_addr?: string | null;
@@ -129,462 +122,222 @@ export class Ext {
   }
 }
 
-export const ExtDefault = new Ext("fake.com:80", "abc");
+export const ExtDefault = {
+  fixed_target_addr: "fake.com:80",
+  pre_defined_early_data: "abc",
+} as Ext;
+
+export const RecorderDefault = {
+  output_dir: optional(""),
+  output_format: optional("ruci"),
+  output_file_extension: optional("cbor"),
+  record_mode: optional("full"),
+  prettify: optional(false),
+  label: optional("direct"),
+  piece_truncate_option: optional("no-truncate"),
+  session_truncate_option: optional("no-truncate"),
+};
 
 export const NODE_TYPES: NodeTypeConfig[] = [
   // Inbound Nodes
-  new NodeTypeConfig("Echo", "Echo", "inbound", {} as any, []),
-  new NodeTypeConfig(
-    "Stdio",
-    "Stdio",
-    "inbound",
-    {
-      ext: ExtDefault,
-    } as StdioConfig,
-    ["ext"]
-  ),
-  new NodeTypeConfig(
-    "Fileio",
-    "File I/O",
-    "inbound",
-    {
-      i: "test.crt",
-      o: "testfile.txt",
-      sleep_interval: 500,
-      bytes_per_turn: 10,
-      ext: ExtDefault,
-    } as FileConfig,
-    ["sleep_interval", "bytes_per_turn", "ext"]
-  ),
-  new NodeTypeConfig(
-    "BindDialer",
-    "Bind Dialer",
-    "inbound",
-    BindDialerDefault,
-    ["dns_client", "in_auto_route", "out_auto_route", "ext"]
-  ),
-  new NodeTypeConfig(
-    "Listener",
-    "Listener",
-    "inbound",
-    {
-      listen_addr: "0.0.0.0:10801",
-      ext: ExtDefault,
-    } as Listener,
-    ["ext"]
-  ),
-  new NodeTypeConfig(
-    "TcpOptListener",
-    "TCP Opt Listener",
-    "inbound",
-    {
-      listen_addr: "0.0.0.0:12345",
-      sockopt: {
-        tproxy: false,
-      },
-      ext: ExtDefault,
-    } as TcpOptListener,
-    ["ext"]
-  ),
-  new NodeTypeConfig(
-    "Adder",
-    "Adder",
-    "inbound",
-    {
-      value: 1,
-    } as any,
-    []
-  ),
-  new NodeTypeConfig("Counter", "Counter", "inbound", {}, []),
-  new NodeTypeConfig(
-    "Recorder",
-    "Recorder",
-    "inbound",
-    {
-      output_dir: "",
-      output_format: "ruci",
-      output_file_extension: "cbor",
-      record_mode: "full",
-      prettify: false,
-      label: "direct",
-      piece_truncate_option: "no-truncate",
-      session_truncate_option: "no-truncate",
-    } as RecorderConfig,
-    [
-      "label",
-      "output_dir",
-      "output_file_extension",
-      "output_format",
-      "record_mode",
-      "prettify",
-      "piece_truncate_option",
-      "session_truncate_option",
-    ]
-  ),
-  new NodeTypeConfig(
-    "TLS",
-    "TLS Server",
-    "inbound",
-    {
-      cert: "",
-      key: "",
-      alpn: ["h2", "http/1.1"],
-    } as TlsServerOptions,
-    ["alpn"]
-  ),
-  new NodeTypeConfig(
-    "NativeTLS",
-    "Native TLS",
-    "inbound",
-    {
-      cert: "",
-      key: "",
-      alpn: ["h2", "http/1.1"],
-    } as TlsServerOptions,
-    ["alpn"]
-  ),
-  new NodeTypeConfig(
-    "H2",
-    "HTTP/2",
-    "inbound",
-    {
-      is_grpc: false,
-      http_config: {
-        method: "GET",
-        scheme: "https",
-        authority: "user@www.ruci.com:80",
-        path: "/mypath",
-        headers: {},
-        use_early_data: false,
-      },
-    } as H2,
-    ["is_grpc", "http_config"]
-  ),
-  new NodeTypeConfig(
-    "Http",
-    "HTTP",
-    "inbound",
-    {
-      userpass: "",
-      more: [],
-    } as PlainTextPassSet,
-    ["userpass", "more"]
-  ),
-  new NodeTypeConfig(
-    "Socks5",
-    "SOCKS5",
-    "inbound",
-    {
-      userpass: "",
-      more: [],
-    } as PlainTextPassSet,
-    ["userpass", "more"]
-  ),
-  new NodeTypeConfig(
-    "Socks5Http",
-    "SOCKS5 HTTP",
-    "inbound",
-    {
-      userpass: "",
-      more: [],
-    } as PlainTextPassSet,
-    ["userpass", "more"]
-  ),
-  new NodeTypeConfig(
-    "Trojan",
-    "Trojan",
-    "inbound",
-    {
-      password: "",
-      more: [],
-    } as TrojanConfig,
-    ["password", "more"]
-  ),
-  new NodeTypeConfig(
-    "HttpFilter",
-    "HTTP Filter",
-    "inbound",
-    {
+  new NodeTypeConfig("Echo", "Echo", "inbound", {}),
+  new NodeTypeConfig("Stdio", "Stdio", "inbound", {
+    ext: optional(ExtDefault),
+  }),
+  new NodeTypeConfig("Fileio", "File I/O", "inbound", {
+    i: required("test.crt"),
+    o: required("testfile.txt"),
+    sleep_interval: optional(500),
+    bytes_per_turn: optional(10),
+    ext: optional(ExtDefault),
+  }),
+  new NodeTypeConfig("BindDialer", "Bind Dialer", "inbound", BindDialerDefault),
+  new NodeTypeConfig("Listener", "Listener", "inbound", {
+    listen_addr: "0.0.0.0:10801",
+    ext: optional(ExtDefault),
+  } as Listener),
+  new NodeTypeConfig("TcpOptListener", "TCP Opt Listener", "inbound", {
+    listen_addr: "0.0.0.0:12345",
+    sockopt: {
+      tproxy: false,
+    },
+    ext: optional(ExtDefault),
+  } as TcpOptListener),
+  new NodeTypeConfig("Adder", "Adder", "inbound", {
+    value: 1,
+  } as any),
+  new NodeTypeConfig("Counter", "Counter", "inbound", {}),
+  new NodeTypeConfig("Recorder", "Recorder", "inbound", RecorderDefault),
+  new NodeTypeConfig("TLS", "TLS Server", "inbound", {
+    cert: "",
+    key: "",
+    alpn: optional(["h2", "http/1.1"]),
+  }),
+  new NodeTypeConfig("NativeTLS", "Native TLS", "inbound", {
+    cert: "",
+    key: "",
+    alpn: optional(["h2", "http/1.1"]),
+  }),
+  new NodeTypeConfig("H2", "HTTP/2", "inbound", {
+    is_grpc: false,
+    http_config: optional({
       method: "GET",
       scheme: "https",
       authority: "user@www.ruci.com:80",
       path: "/mypath",
       headers: {},
       use_early_data: false,
-    } as CommonConfig,
-    ["method", "scheme", "headers", "use_early_data"]
-  ),
-  new NodeTypeConfig(
-    "WebSocket",
-    "WebSocket",
-    "inbound",
-    {
-      http_config: {
-        method: "GET",
-        scheme: "https",
-        authority: "user@www.ruci.com:80",
-        path: "/mypath",
-        headers: {},
-        use_early_data: false,
-      },
-    } as WebSocket,
-    ["http_config"]
-  ),
-  new NodeTypeConfig(
-    "Quic",
-    "QUIC",
-    "inbound",
-    {
-      cert: "",
-      key: "",
-      alpn: ["h2", "http/1.1"],
-      listen_addr: "0.0.0.0:443",
-    } as QuicServerConfig,
-    ["alpn"]
-  ),
-  new NodeTypeConfig("Stack", "Stack", "inbound", {} as any, []),
-  new NodeTypeConfig(
-    "SPE1",
-    "SPE1",
-    "inbound",
-    {
-      qa: [
-        ["q1", "a1"],
-        ["q2", "a2"],
-      ],
-    } as SPE1,
-    ["qa"]
-  ),
-  new NodeTypeConfig(
-    "Lua",
-    "Lua",
-    "inbound",
-    {
-      file_name: "file.lua",
-      handshake_function: "handshake_function",
-    } as Lua,
-    []
-  ),
-  new NodeTypeConfig(
-    "MITM",
-    "MITM",
-    "inbound",
-    {
-      cert: "",
-      key: "",
-      alpn: ["h2", "http/1.1"],
-    } as TlsServerOptions,
-    ["alpn"]
-  ),
-  new NodeTypeConfig(
-    "Embedder",
-    "Embedder",
-    "inbound",
-    {
-      file_name: "file.lua",
-    } as Embedder,
-    []
-  ),
+    }),
+  }),
+  new NodeTypeConfig("Http", "HTTP", "inbound", {
+    userpass: optional(""),
+    more: optional([]),
+  }),
+  new NodeTypeConfig("Socks5", "SOCKS5", "inbound", {
+    userpass: optional(""),
+    more: optional([]),
+  }),
+  new NodeTypeConfig("Socks5Http", "SOCKS5 HTTP", "inbound", {
+    userpass: optional(""),
+    more: optional([]),
+  }),
+  new NodeTypeConfig("Trojan", "Trojan", "inbound", {
+    password: required(""),
+    more: optional([]),
+  }),
+  new NodeTypeConfig("HttpFilter", "HTTP Filter", "inbound", {
+    method: "GET",
+    scheme: "https",
+    authority: "user@www.ruci.com:80",
+    path: "/mypath",
+    headers: {},
+    use_early_data: false,
+  } as CommonConfig),
+  new NodeTypeConfig("WebSocket", "WebSocket", "inbound", {
+    http_config: {
+      method: "GET",
+      scheme: "https",
+      authority: "user@www.ruci.com:80",
+      path: "/mypath",
+      headers: {},
+      use_early_data: false,
+    },
+  } as WebSocket),
+  new NodeTypeConfig("Quic", "QUIC", "inbound", {
+    cert: "",
+    key: "",
+    alpn: ["h2", "http/1.1"],
+    listen_addr: "0.0.0.0:443",
+  } as QuicServerConfig),
+  new NodeTypeConfig("Stack", "Stack", "inbound", {} as any),
+  new NodeTypeConfig("SPE1", "SPE1", "inbound", {
+    qa: [
+      ["q1", "a1"],
+      ["q2", "a2"],
+    ],
+  } as SPE1),
+  new NodeTypeConfig("Lua", "Lua", "inbound", {
+    file_name: "file.lua",
+    handshake_function: "handshake_function",
+  } as Lua),
+  new NodeTypeConfig("MITM", "MITM", "inbound", {
+    cert: "",
+    key: "",
+    alpn: optional(["h2", "http/1.1"]),
+  }),
+  new NodeTypeConfig("Embedder", "Embedder", "inbound", {
+    file_name: "file.lua",
+  } as Embedder),
 
   // Outbound Nodes
-  new NodeTypeConfig("Blackhole", "Blackhole", "outbound", {} as any, []),
-  new NodeTypeConfig(
-    "Direct",
-    "Direct",
-    "outbound",
-    {
-      leak_target_addr: true,
-      dns_client: {
-        dns_server_list: [],
-        ip_strategy: "Ipv4Only",
-      },
-    } as DirectConfig,
-    ["leak_target_addr", "dns_client"]
-  ),
-  new NodeTypeConfig(
-    "Stdio",
-    "Stdio",
-    "outbound",
-    {
-      write_mode: "UTF8",
-      ext: ExtDefault,
-    } as StdioConfig,
-    ["write_mode", "ext"]
-  ),
-  new NodeTypeConfig(
-    "Fileio",
-    "File I/O",
-    "outbound",
-    {
-      i: "test.crt",
-      o: "testfile.txt",
-      sleep_interval: 500,
-      bytes_per_turn: 10,
-      ext: ExtDefault,
-    } as FileConfig,
-    ["sleep_interval", "bytes_per_turn", "ext"]
-  ),
+  new NodeTypeConfig("Blackhole", "Blackhole", "outbound", {} as any),
+  new NodeTypeConfig("Direct", "Direct", "outbound", {
+    leak_target_addr: true,
+    dns_client: {
+      dns_server_list: optional([]),
+      ip_strategy: optional("Ipv4Only"),
+    },
+  }),
+  new NodeTypeConfig("Stdio", "Stdio", "outbound", {
+    write_mode: "UTF8",
+    ext: ExtDefault,
+  } as StdioConfig),
+  new NodeTypeConfig("Fileio", "File I/O", "outbound", {
+    i: "test.crt",
+    o: "testfile.txt",
+    sleep_interval: 500,
+    bytes_per_turn: 10,
+    ext: ExtDefault,
+  } as FileConfig),
   new NodeTypeConfig(
     "BindDialer",
     "Bind Dialer",
     "outbound",
-    BindDialerDefault,
-    ["dns_client", "in_auto_route", "out_auto_route", "ext"]
+    BindDialerDefault
   ),
-  new NodeTypeConfig("Adder", "Adder", "outbound", { value: 1 } as any, []),
-  new NodeTypeConfig("Counter", "Counter", "outbound", {}, []),
-  new NodeTypeConfig(
-    "Recorder",
-    "Recorder",
-    "outbound",
-    {
-      output_dir: "",
-      output_format: "ruci",
-      output_file_extension: "cbor",
-      record_mode: "full",
-      prettify: false,
-      label: "direct",
-      piece_truncate_option: "no-truncate",
-      session_truncate_option: "no-truncate",
-    } as RecorderConfig,
-    [
-      "label",
-      "output_dir",
-      "output_file_extension",
-      "output_format",
-      "record_mode",
-      "prettify",
-      "piece_truncate_option",
-      "session_truncate_option",
-    ]
-  ),
-  new NodeTypeConfig(
-    "TLS",
-    "TLS Client",
-    "outbound",
-    {
-      host: "null",
-      insecure: false,
-      alpn: ["h2", "http/1.1"],
-    } as TlsClientOptions,
-    ["host", "alpn", "cert"]
-  ),
-  new NodeTypeConfig(
-    "OptDirect",
-    "Opt Direct",
-    "outbound",
-    {
-      sockopt: {},
-      more_num_of_files: false,
-      dns_client: {},
-    } as OptDirect,
-    ["more_num_of_files", "dns_client"]
-  ),
+  new NodeTypeConfig("Adder", "Adder", "outbound", { value: 1 } as any),
+  new NodeTypeConfig("Counter", "Counter", "outbound", {}),
+  new NodeTypeConfig("Recorder", "Recorder", "outbound", RecorderDefault),
+  new NodeTypeConfig("TLS", "TLS Client", "outbound", {
+    host: "null",
+    insecure: false,
+    alpn: ["h2", "http/1.1"],
+  } as TlsClientOptions),
+  new NodeTypeConfig("OptDirect", "Opt Direct", "outbound", {
+    sockopt: {},
+    more_num_of_files: false,
+    dns_client: {},
+  } as OptDirect),
   new NodeTypeConfig(
     "OptDialer",
     "Opt Dialer",
     "outbound",
-    {} as OptDialerOption,
-    ["dns_client"]
+    {} as OptDialerOption
   ),
-  new NodeTypeConfig(
-    "NativeTLS",
-    "Native TLS",
-    "outbound",
-    {
-      cert: "",
-      key: "",
-      alpn: ["h2", "http/1.1"],
-      insecure: false,
-    } as TlsClientOptions,
-    ["host", "alpn", "cert"]
-  ),
-  new NodeTypeConfig(
-    "Http",
-    "HTTP",
-    "outbound",
-    {
-      userpass: "",
-      ext: ExtDefault,
-    },
-    ["userpass", "ext"]
-  ),
-  new NodeTypeConfig(
-    "Socks5",
-    "SOCKS5",
-    "outbound",
-    {
-      userpass: "",
-      early_data: true,
-      ext: ExtDefault,
-    } as Socks5Out,
-    ["userpass", "early_data", "ext"]
-  ),
-  new NodeTypeConfig(
-    "Trojan",
-    "Trojan",
-    "outbound",
-    {
-      password: "",
-      more: null,
-    } as TrojanClientConfig,
-    ["password", "more", "do_not_use_early_data"]
-  ),
-  new NodeTypeConfig(
-    "WebSocket",
-    "WebSocket",
-    "outbound",
-    {
-      method: "",
-      scheme: "",
-      authority: "",
-      path: "",
-      headers: {},
-      use_early_data: false,
-    } as CommonConfig,
-    ["method", "scheme", "headers", "use_early_data"]
-  ),
-  new NodeTypeConfig(
-    "H2Single",
-    "H2 Single",
-    "outbound",
-    {
-      is_grpc: false,
-      http_config: {},
-    } as H2,
-    ["is_grpc", "http_config"]
-  ),
-  new NodeTypeConfig(
-    "H2Mux",
-    "H2 Mux",
-    "outbound",
-    {
-      is_grpc: false,
-      http_config: {},
-    } as H2,
-    ["is_grpc", "http_config"]
-  ),
-  new NodeTypeConfig(
-    "Quic",
-    "QUIC",
-    "outbound",
-    {
-      server_addr: "",
-      server_name: "",
-    } as QuicClientConfig,
-    ["cert", "alpn", "insecure"]
-  ),
-  new NodeTypeConfig("SPE1", "SPE1", "outbound", {} as SPE1, ["qa"]),
-  new NodeTypeConfig(
-    "Lua",
-    "Lua",
-    "outbound",
-    {
-      file_name: "",
-      handshake_function: "",
-    } as Lua,
-    []
-  ),
+  new NodeTypeConfig("NativeTLS", "Native TLS", "outbound", {
+    cert: "",
+    key: "",
+    alpn: ["h2", "http/1.1"],
+    insecure: false,
+  } as TlsClientOptions),
+  new NodeTypeConfig("Http", "HTTP", "outbound", {
+    userpass: "",
+    ext: ExtDefault,
+  }),
+  new NodeTypeConfig("Socks5", "SOCKS5", "outbound", {
+    userpass: "",
+    early_data: true,
+    ext: ExtDefault,
+  } as Socks5Out),
+  new NodeTypeConfig("Trojan", "Trojan", "outbound", {
+    password: "",
+    more: null,
+  } as TrojanClientConfig),
+  new NodeTypeConfig("WebSocket", "WebSocket", "outbound", {
+    method: "",
+    scheme: "",
+    authority: "",
+    path: "",
+    headers: {},
+    use_early_data: false,
+  } as CommonConfig),
+  new NodeTypeConfig("H2Single", "H2 Single", "outbound", {
+    is_grpc: false,
+    http_config: {},
+  } as H2),
+  new NodeTypeConfig("H2Mux", "H2 Mux", "outbound", {
+    is_grpc: false,
+    http_config: {},
+  } as H2),
+  new NodeTypeConfig("Quic", "QUIC", "outbound", {
+    server_addr: "",
+    server_name: "",
+  } as QuicClientConfig),
+  new NodeTypeConfig("SPE1", "SPE1", "outbound", { qa: optional(["q"]) }),
+  new NodeTypeConfig("Lua", "Lua", "outbound", {
+    file_name: "",
+    handshake_function: "",
+  } as Lua),
 ];
 
 export class Listener {

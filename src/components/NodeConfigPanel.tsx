@@ -11,7 +11,8 @@ import {
 import { ChainNodeData } from "./nodes/ChainNode";
 import { NODE_TYPES } from "../config/nodeTypes";
 import _, { isNull } from "lodash"; // bun i lodash, bun i -D @types/lodash
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { NodeConfigContext } from "../contexts/NodeConfigContext";
 
 interface NodeConfigPanelProps {
   selectedNode: Node<ChainNodeData> | null;
@@ -141,7 +142,24 @@ const NodeConfigPanel = ({
     defaultConfig: any
   ): boolean => {
     // 检查默认配置中的值
-    const defaultValue = _.get(defaultConfig, key);
+    const defaultField = _.get(defaultConfig, key);
+
+    // 如果是 Field 类型，直接使用其 optional 属性
+    if (
+      defaultField &&
+      typeof defaultField === "object" &&
+      "optional" in defaultField
+    ) {
+      return defaultField.optional;
+    }
+
+    // 兼容旧的判断逻辑
+    const defaultValue =
+      defaultField &&
+      typeof defaultField === "object" &&
+      "value" in defaultField
+        ? defaultField.value
+        : defaultField;
 
     const isOptionalType =
       defaultValue === null ||
@@ -167,60 +185,97 @@ const NodeConfigPanel = ({
     defaultConfig: any,
     path: string = ""
   ) => {
-    return Object.entries(defaultConfig || {}).map(([key, defaultValue]) => {
-      const currentPath = path ? `${path}.${key}` : key;
-      const configValue = _.get(config, key);
-      const isConfigValueUndefined = configValue === undefined;
+    return Object.entries(defaultConfig || {}).map(
+      ([key, defaultFieldOrValue]) => {
+        // 处理 Field 类型
+        const defaultField =
+          defaultFieldOrValue &&
+          typeof defaultFieldOrValue === "object" &&
+          "value" in defaultFieldOrValue
+            ? (defaultFieldOrValue as { value: any; optional: boolean })
+            : { value: defaultFieldOrValue, optional: false };
 
-      // 检查是否为可选项
-      const isOptional = isOptionalProperty(key, config, defaultConfig);
+        const defaultValue = defaultField.value;
+        const isOptional = defaultField.optional;
 
-      // 如果是可选项且配置中不存在该项，则显示"加入"按钮
-      if (isOptional) {
-        return (
-          <OptionalField
-            key={currentPath}
-            path={currentPath}
-            fieldKey={key}
-            defaultValue={defaultValue}
-            control={control}
-          />
-        );
-      }
+        const currentPath = path ? `${path}.${key}` : key;
+        const configValue = _.get(config, key);
+        const isConfigValueUndefined = configValue === undefined;
 
-      // 处理不同类型的配置项
-      if (typeof defaultValue === "object" && defaultValue !== null) {
-        if (Array.isArray(defaultValue)) {
+        // 如果是可选项且配置中不存在该项，则显示"加入"按钮
+        if (isOptional) {
           return (
-            <Box
+            <OptionalField
               key={currentPath}
-              sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
-            >
-              <ArrayField
-                name={currentPath}
-                control={control}
-                defaultValue={_.get(config, key, [])}
-                label={key}
-              />
-            </Box>
+              path={currentPath}
+              fieldKey={key}
+              defaultValue={defaultField}
+              control={control}
+            />
           );
-        } else if (Object.keys(defaultValue).length === 0) {
-          // 处理 Record 类型的配置项，如 static_pairs, headers 或空对象
-          return (
-            <Box
-              key={currentPath}
-              sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
-            >
-              <RecordField
-                name={currentPath}
-                control={control}
-                defaultValue={_.get(config, key, {})}
-                label={key}
-              />
-            </Box>
-          );
+        }
+
+        // 处理不同类型的配置项
+        if (typeof defaultValue === "object" && defaultValue !== null) {
+          if (Array.isArray(defaultValue)) {
+            return (
+              <Box
+                key={currentPath}
+                sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+              >
+                <ArrayField
+                  name={currentPath}
+                  control={control}
+                  defaultValue={_.get(config, key, [])}
+                  label={key}
+                />
+              </Box>
+            );
+          } else if (Object.keys(defaultValue).length === 0) {
+            // 处理 Record 类型的配置项，如 static_pairs, headers 或空对象
+            return (
+              <Box
+                key={currentPath}
+                sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+              >
+                <RecordField
+                  name={currentPath}
+                  control={control}
+                  defaultValue={_.get(config, key, {})}
+                  label={key}
+                />
+              </Box>
+            );
+          } else {
+            // 如果是嵌套对象，且配置中不存在该项，则显示"加入"按钮
+            if (isConfigValueUndefined) {
+              return (
+                <OptionalField
+                  key={currentPath}
+                  path={currentPath}
+                  fieldKey={key}
+                  defaultValue={defaultValue}
+                  control={control}
+                />
+              );
+            }
+
+            return (
+              <Box
+                key={currentPath}
+                sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+              >
+                <Typography variant="subtitle2">{key}</Typography>
+                {renderConfigFields(
+                  _.get(config, key, {}),
+                  defaultValue,
+                  currentPath
+                )}
+              </Box>
+            );
+          }
         } else {
-          // 如果是嵌套对象，且配置中不存在该项，则显示"加入"按钮
+          // 如果是基本类型，且配置中不存在该项，则显示"加入"按钮
           if (isConfigValueUndefined) {
             return (
               <OptionalField
@@ -233,124 +288,97 @@ const NodeConfigPanel = ({
             );
           }
 
-          return (
-            <Box
-              key={currentPath}
-              sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
-            >
-              <Typography variant="subtitle2">{key}</Typography>
-              {renderConfigFields(
-                _.get(config, key, {}),
-                defaultValue,
-                currentPath
-              )}
-            </Box>
-          );
-        }
-      } else {
-        // 如果是基本类型，且配置中不存在该项，则显示"加入"按钮
-        if (isConfigValueUndefined) {
-          return (
-            <OptionalField
-              key={currentPath}
-              path={currentPath}
-              fieldKey={key}
-              defaultValue={defaultValue}
-              control={control}
-            />
-          );
-        }
+          if (typeof defaultValue === "number") {
+            return (
+              <Controller
+                key={currentPath}
+                name={currentPath}
+                control={control}
+                defaultValue={_.get(config, key, defaultValue)}
+                render={({ field }) => {
+                  const handleChange = (
+                    e: React.ChangeEvent<HTMLInputElement>
+                  ) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      field.onChange(defaultValue);
+                    } else {
+                      const num = parseFloat(value);
+                      !isNaN(num) && field.onChange(num);
+                    }
+                  };
 
-        if (typeof defaultValue === "number") {
-          return (
-            <Controller
-              key={currentPath}
-              name={currentPath}
-              control={control}
-              defaultValue={_.get(config, key, defaultValue)}
-              render={({ field }) => {
-                const handleChange = (
-                  e: React.ChangeEvent<HTMLInputElement>
-                ) => {
-                  const value = e.target.value;
-                  if (value === "") {
-                    field.onChange(defaultValue);
-                  } else {
-                    const num = parseFloat(value);
-                    !isNaN(num) && field.onChange(num);
-                  }
-                };
+                  return (
+                    <TextField
+                      value={field.value ?? ""}
+                      onChange={handleChange}
+                      label={key}
+                      fullWidth
+                      margin="normal"
+                      size="small"
+                      type="number"
+                      inputProps={{
+                        step: Number.isInteger(defaultValue) ? "1" : "any",
+                      }}
+                    />
+                  );
+                }}
+              />
+            );
+          }
 
-                return (
+          if (typeof defaultValue === "boolean") {
+            return (
+              <Controller
+                key={currentPath}
+                name={currentPath}
+                control={control}
+                defaultValue={_.get(config, key, defaultValue)}
+                render={({ field }) => (
                   <TextField
-                    value={field.value ?? ""}
-                    onChange={handleChange}
+                    {...field}
                     label={key}
                     fullWidth
                     margin="normal"
                     size="small"
-                    type="number"
-                    inputProps={{
-                      step: Number.isInteger(defaultValue) ? "1" : "any",
-                    }}
+                    type="checkbox"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      field.onChange(e.target.checked)
+                    }
                   />
-                );
-              }}
-            />
-          );
-        }
+                )}
+              />
+            );
+          }
 
-        if (typeof defaultValue === "boolean") {
           return (
             <Controller
               key={currentPath}
               name={currentPath}
               control={control}
-              defaultValue={_.get(config, key, defaultValue)}
-              render={({ field }) => (
+              defaultValue={
+                isNull(_.get(config, key, defaultValue))
+                  ? defaultValue
+                  : _.get(config, key, defaultValue)
+              }
+              render={({ field: { onChange, onBlur, value, ref } }) => (
                 <TextField
-                  {...field}
+                  // {...field}
+                  onChange={onChange} // send value to hook form
+                  onBlur={onBlur} // notify when input is touched
+                  ref={ref} //
+                  value={isNull(value) ? defaultValue : value}
                   label={key}
                   fullWidth
                   margin="normal"
                   size="small"
-                  type="checkbox"
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    field.onChange(e.target.checked)
-                  }
                 />
               )}
             />
           );
         }
-
-        return (
-          <Controller
-            key={currentPath}
-            name={currentPath}
-            control={control}
-            defaultValue={
-              isNull(_.get(config, key, defaultValue))
-                ? defaultValue
-                : _.get(config, key, defaultValue)
-            }
-            render={({ field: { onChange, onBlur, value, ref } }) => (
-              <TextField
-                // {...field}
-                onChange={onChange} // send value to hook form
-                onBlur={onBlur} // notify when input is touched
-                ref={ref} //
-                value={isNull(value) ? defaultValue : value}
-                label={key}
-                fullWidth
-                margin="normal"
-                size="small"
-              />
-            )}
-          />
-        );
       }
-    });
+    );
   };
 
   return (
@@ -361,18 +389,20 @@ const NodeConfigPanel = ({
       <Typography variant="subtitle1" gutterBottom>
         Type: {selectedNode.data.type}
       </Typography>
-      <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {nodeTypeConfig &&
-            renderConfigFields(
-              selectedNode.data.config,
-              nodeTypeConfig.defaultConfig
-            )}
-          <Button type="submit" variant="contained" sx={{ mt: 2 }} fullWidth>
-            Save Changes
-          </Button>
-        </form>
-      </FormProvider>
+      <NodeConfigContext.Provider value={{ selectedNode, onNodeUpdate }}>
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {nodeTypeConfig &&
+              renderConfigFields(
+                selectedNode.data.config,
+                nodeTypeConfig.defaultConfig
+              )}
+            <Button type="submit" variant="contained" sx={{ mt: 2 }} fullWidth>
+              Save Changes
+            </Button>
+          </form>
+        </FormProvider>
+      </NodeConfigContext.Provider>
     </Box>
   );
 };
@@ -578,27 +608,54 @@ const OptionalField = ({
 }: OptionalFieldProps) => {
   const [isAdded, setIsAdded] = useState(false);
   const { setValue, unregister, getValues } = useFormContext();
+  const nodeContext = useContext(NodeConfigContext);
+  const selectedNode = nodeContext?.selectedNode;
 
   useEffect(() => {
     // 检查表单中是否已经有该字段的值
     const currentValue = getValues(path);
-    // 只有当值不是 undefined 且不是 null 时，才认为该字段已添加
-    if (currentValue !== undefined && currentValue !== null) {
+
+    // 检查节点配置中是否存在该字段
+    const configValue = selectedNode?.data.config
+      ? _.get(selectedNode.data.config, path)
+      : undefined;
+
+    // 只有当值不是 undefined 且不是 null 时，或者配置中存在该字段时，才认为该字段已添加
+    if (
+      (currentValue !== undefined && currentValue !== null) ||
+      (configValue !== undefined && configValue !== null)
+    ) {
       setIsAdded(true);
+
+      // 如果表单中没有值但配置中有值，将配置中的值设置到表单中
+      if (
+        (currentValue === undefined || currentValue === null) &&
+        configValue !== undefined &&
+        configValue !== null
+      ) {
+        setValue(path, configValue);
+      }
     } else {
       setIsAdded(false);
     }
-  }, [getValues, path]);
+  }, [getValues, path, selectedNode, setValue]);
 
   const handleAdd = () => {
+    // 处理 Field 类型
+    const isField =
+      defaultValue &&
+      typeof defaultValue === "object" &&
+      "value" in defaultValue;
+    const value = isField ? defaultValue.value : defaultValue;
+
     // 使用 setValue 将默认值添加到表单中
     // 对于数组类型，如果默认值不是空数组，我们可能需要特殊处理
-    if (Array.isArray(defaultValue)) {
+    if (Array.isArray(value)) {
       // 如果是空数组，添加一个空数组
       // 如果不是空数组，复制默认值
-      setValue(path, [...defaultValue]);
+      setValue(path, [...value]);
     } else {
-      setValue(path, defaultValue);
+      setValue(path, value);
     }
     setIsAdded(true);
   };
@@ -622,24 +679,28 @@ const OptionalField = ({
     );
   }
 
-  // 如果已添加，则根据类型渲染相应的字段
-  const renderField = () => {
-    if (typeof defaultValue === "object" && defaultValue !== null) {
-      if (Array.isArray(defaultValue)) {
+  // 处理 Field 类型
+  const isField =
+    defaultValue && typeof defaultValue === "object" && "value" in defaultValue;
+  const actualDefaultValue = isField ? defaultValue.value : defaultValue;
+
+  const render = () => {
+    if (typeof actualDefaultValue === "object" && actualDefaultValue !== null) {
+      if (Array.isArray(actualDefaultValue)) {
         return (
           <ArrayField
             name={path}
             control={control}
-            defaultValue={defaultValue}
+            defaultValue={actualDefaultValue}
             label={fieldKey}
           />
         );
-      } else if (Object.keys(defaultValue).length === 0) {
+      } else if (Object.keys(actualDefaultValue).length === 0) {
         return (
           <RecordField
             name={path}
             control={control}
-            defaultValue={defaultValue}
+            defaultValue={actualDefaultValue}
             label={fieldKey}
           />
         );
@@ -647,219 +708,291 @@ const OptionalField = ({
         // 嵌套对象，直接渲染子字段
         return (
           <Box sx={{ padding: 1 }}>
-            {Object.entries(defaultValue).map(([subKey, subValue]) => {
-              const subPath = `${path}.${subKey}`;
+            {Object.entries(actualDefaultValue).map(
+              ([subKey, subFieldOrValue]) => {
+                const subPath = `${path}.${subKey}`;
 
-              // 基本类型或简单对象
-              if (
-                typeof subValue !== "object" ||
-                subValue === null ||
-                Array.isArray(subValue) ||
-                Object.keys(subValue).length === 0
-              ) {
-                if (
-                  typeof subValue === "object" &&
-                  subValue !== null &&
-                  Array.isArray(subValue)
-                ) {
-                  return (
-                    <Box
-                      key={subPath}
-                      sx={{ margin: 1, padding: 1, border: "1px dashed #ccc" }}
-                    >
-                      <Typography variant="subtitle2">{subKey}</Typography>
-                      <ArrayField
-                        name={subPath}
-                        control={control}
-                        defaultValue={subValue}
-                        label={subKey}
-                      />
-                    </Box>
-                  );
-                } else if (
-                  typeof subValue === "object" &&
-                  subValue !== null &&
-                  Object.keys(subValue).length === 0
-                ) {
-                  return (
-                    <Box
-                      key={subPath}
-                      sx={{ margin: 1, padding: 1, border: "1px dashed #ccc" }}
-                    >
-                      <Typography variant="subtitle2">{subKey}</Typography>
-                      <RecordField
-                        name={subPath}
-                        control={control}
-                        defaultValue={subValue}
-                        label={subKey}
-                      />
-                    </Box>
-                  );
-                } else {
-                  // 基本类型
-                  return (
-                    <Box key={subPath} sx={{ margin: 1 }}>
-                      <Controller
-                        name={subPath}
-                        control={control}
-                        defaultValue={subValue}
-                        render={({ field }) => {
-                          if (typeof subValue === "boolean") {
-                            return (
-                              <TextField
-                                {...field}
-                                label={subKey}
-                                fullWidth
-                                margin="normal"
-                                size="small"
-                                type="checkbox"
-                                onChange={(
-                                  e: React.ChangeEvent<HTMLInputElement>
-                                ) => field.onChange(e.target.checked)}
-                              />
-                            );
-                          } else if (typeof subValue === "number") {
-                            return (
-                              <TextField
-                                value={field.value ?? ""}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value === "") {
-                                    field.onChange(subValue);
-                                  } else {
-                                    const num = parseFloat(value);
-                                    !isNaN(num) && field.onChange(num);
-                                  }
-                                }}
-                                label={subKey}
-                                fullWidth
-                                margin="normal"
-                                size="small"
-                                type="number"
-                                inputProps={{
-                                  step: Number.isInteger(subValue)
-                                    ? "1"
-                                    : "any",
-                                }}
-                              />
-                            );
-                          } else {
-                            return (
-                              <TextField
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                value={
-                                  isNull(field.value) ? subValue : field.value
-                                }
-                                label={subKey}
-                                fullWidth
-                                margin="normal"
-                                size="small"
-                              />
-                            );
-                          }
+                // 处理 Field 类型
+                const isSubField =
+                  subFieldOrValue &&
+                  typeof subFieldOrValue === "object" &&
+                  "value" in subFieldOrValue &&
+                  "optional" in subFieldOrValue;
+                const subValue = isSubField
+                  ? (subFieldOrValue as any).value
+                  : subFieldOrValue;
+                const isSubOptional = isSubField
+                  ? (subFieldOrValue as any).optional
+                  : false;
+
+                if (!isSubOptional) {
+                  // 基本类型或简单对象
+                  if (
+                    typeof subValue !== "object" ||
+                    subValue === null ||
+                    Array.isArray(subValue) ||
+                    Object.keys(subValue).length === 0
+                  ) {
+                    if (
+                      typeof subValue === "object" &&
+                      subValue !== null &&
+                      Array.isArray(subValue)
+                    ) {
+                      return (
+                        <Box
+                          key={subPath}
+                          sx={{
+                            margin: 1,
+                            padding: 1,
+                            border: "1px dashed #ccc",
+                          }}
+                        >
+                          <Typography variant="subtitle2">{subKey}</Typography>
+                          <ArrayField
+                            name={subPath}
+                            control={control}
+                            defaultValue={subValue}
+                            label={subKey}
+                          />
+                        </Box>
+                      );
+                    } else if (
+                      typeof subValue === "object" &&
+                      subValue !== null &&
+                      Object.keys(subValue).length === 0
+                    ) {
+                      return (
+                        <Box
+                          key={subPath}
+                          sx={{
+                            margin: 1,
+                            padding: 1,
+                            border: "1px dashed #ccc",
+                          }}
+                        >
+                          <Typography variant="subtitle2">{subKey}</Typography>
+                          <RecordField
+                            name={subPath}
+                            control={control}
+                            defaultValue={subValue}
+                            label={subKey}
+                          />
+                        </Box>
+                      );
+                    } else {
+                      // 基本类型
+                      return (
+                        <Box key={subPath} sx={{ margin: 1 }}>
+                          <Controller
+                            name={subPath}
+                            control={control}
+                            defaultValue={subValue}
+                            render={({ field }) => {
+                              if (typeof subValue === "boolean") {
+                                return (
+                                  <TextField
+                                    {...field}
+                                    label={subKey}
+                                    fullWidth
+                                    margin="normal"
+                                    size="small"
+                                    type="checkbox"
+                                    onChange={(
+                                      e: React.ChangeEvent<HTMLInputElement>
+                                    ) => field.onChange(e.target.checked)}
+                                  />
+                                );
+                              } else if (typeof subValue === "number") {
+                                return (
+                                  <TextField
+                                    value={field.value ?? ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === "") {
+                                        field.onChange(subValue);
+                                      } else {
+                                        const num = parseFloat(value);
+                                        !isNaN(num) && field.onChange(num);
+                                      }
+                                    }}
+                                    label={subKey}
+                                    fullWidth
+                                    margin="normal"
+                                    size="small"
+                                    type="number"
+                                    inputProps={{
+                                      step: Number.isInteger(subValue)
+                                        ? "1"
+                                        : "any",
+                                    }}
+                                  />
+                                );
+                              } else {
+                                return (
+                                  <TextField
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    value={
+                                      isNull(field.value)
+                                        ? subValue
+                                        : field.value
+                                    }
+                                    label={subKey}
+                                    fullWidth
+                                    margin="normal"
+                                    size="small"
+                                  />
+                                );
+                              }
+                            }}
+                          />
+                        </Box>
+                      );
+                    }
+                  } else {
+                    // 复杂嵌套对象，显示一个折叠面板
+                    return (
+                      <Box
+                        key={subPath}
+                        sx={{
+                          margin: 1,
+                          padding: 1,
+                          border: "1px dashed #ccc",
                         }}
-                      />
-                    </Box>
+                      >
+                        <Typography variant="subtitle2">{subKey}</Typography>
+                        <Box sx={{ paddingLeft: 2 }}>
+                          {Object.entries(subValue as object).map(
+                            ([nestedKey, nestedFieldOrValue]) => {
+                              const nestedPath = `${subPath}.${nestedKey}`;
+
+                              // 处理 Field 类型
+                              const isNestedField =
+                                nestedFieldOrValue &&
+                                typeof nestedFieldOrValue === "object" &&
+                                "value" in nestedFieldOrValue;
+                              const nestedValue = isNestedField
+                                ? (nestedFieldOrValue as any).value
+                                : nestedFieldOrValue;
+                              const isNestedOptional = isNestedField
+                                ? (nestedFieldOrValue as any).optional
+                                : false;
+
+                              if (isNestedOptional) {
+                                return (
+                                  <OptionalField
+                                    key={nestedPath}
+                                    path={nestedPath}
+                                    fieldKey={nestedKey}
+                                    defaultValue={nestedValue}
+                                    control={control}
+                                  />
+                                );
+                              }
+
+                              return (
+                                <Controller
+                                  key={nestedPath}
+                                  name={nestedPath}
+                                  control={control}
+                                  defaultValue={nestedValue}
+                                  render={({ field }) => {
+                                    if (typeof nestedValue === "boolean") {
+                                      return (
+                                        <TextField
+                                          {...field}
+                                          label={nestedKey}
+                                          fullWidth
+                                          margin="normal"
+                                          size="small"
+                                          type="checkbox"
+                                          onChange={(
+                                            e: React.ChangeEvent<HTMLInputElement>
+                                          ) => field.onChange(e.target.checked)}
+                                        />
+                                      );
+                                    } else if (
+                                      typeof nestedValue === "number"
+                                    ) {
+                                      return (
+                                        <TextField
+                                          value={field.value ?? ""}
+                                          onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === "") {
+                                              field.onChange(nestedValue);
+                                            } else {
+                                              const num = parseFloat(value);
+                                              !isNaN(num) &&
+                                                field.onChange(num);
+                                            }
+                                          }}
+                                          label={nestedKey}
+                                          fullWidth
+                                          margin="normal"
+                                          size="small"
+                                          type="number"
+                                          inputProps={{
+                                            step: Number.isInteger(nestedValue)
+                                              ? "1"
+                                              : "any",
+                                          }}
+                                        />
+                                      );
+                                    } else if (
+                                      typeof nestedValue !== "object" ||
+                                      nestedValue === null
+                                    ) {
+                                      return (
+                                        <TextField
+                                          onChange={field.onChange}
+                                          onBlur={field.onBlur}
+                                          value={
+                                            isNull(field.value)
+                                              ? nestedValue
+                                              : field.value
+                                          }
+                                          label={nestedKey}
+                                          fullWidth
+                                          margin="normal"
+                                          size="small"
+                                        />
+                                      );
+                                    } else {
+                                      // 对于更深层次的嵌套，显示一个简单的提示
+                                      return (
+                                        <Box
+                                          key={nestedPath}
+                                          sx={{ margin: 1 }}
+                                        >
+                                          <Typography variant="body2">
+                                            {nestedKey}: 复杂对象 (保存后可编辑)
+                                          </Typography>
+                                        </Box>
+                                      );
+                                    }
+                                  }}
+                                />
+                              );
+                            }
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  }
+                } else {
+                  return (
+                    <OptionalField
+                      key={subPath}
+                      path={subPath}
+                      fieldKey={subKey}
+                      defaultValue={subValue}
+                      control={control}
+                    />
                   );
                 }
-              } else {
-                // 复杂嵌套对象，显示一个折叠面板
-                return (
-                  <Box
-                    key={subPath}
-                    sx={{ margin: 1, padding: 1, border: "1px dashed #ccc" }}
-                  >
-                    <Typography variant="subtitle2">{subKey}</Typography>
-                    <Box sx={{ paddingLeft: 2 }}>
-                      {Object.entries(subValue as object).map(
-                        ([nestedKey, nestedValue]) => {
-                          const nestedPath = `${subPath}.${nestedKey}`;
-                          return (
-                            <Controller
-                              key={nestedPath}
-                              name={nestedPath}
-                              control={control}
-                              defaultValue={nestedValue}
-                              render={({ field }) => {
-                                if (typeof nestedValue === "boolean") {
-                                  return (
-                                    <TextField
-                                      {...field}
-                                      label={nestedKey}
-                                      fullWidth
-                                      margin="normal"
-                                      size="small"
-                                      type="checkbox"
-                                      onChange={(
-                                        e: React.ChangeEvent<HTMLInputElement>
-                                      ) => field.onChange(e.target.checked)}
-                                    />
-                                  );
-                                } else if (typeof nestedValue === "number") {
-                                  return (
-                                    <TextField
-                                      value={field.value ?? ""}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === "") {
-                                          field.onChange(nestedValue);
-                                        } else {
-                                          const num = parseFloat(value);
-                                          !isNaN(num) && field.onChange(num);
-                                        }
-                                      }}
-                                      label={nestedKey}
-                                      fullWidth
-                                      margin="normal"
-                                      size="small"
-                                      type="number"
-                                      inputProps={{
-                                        step: Number.isInteger(nestedValue)
-                                          ? "1"
-                                          : "any",
-                                      }}
-                                    />
-                                  );
-                                } else if (
-                                  typeof nestedValue !== "object" ||
-                                  nestedValue === null
-                                ) {
-                                  return (
-                                    <TextField
-                                      onChange={field.onChange}
-                                      onBlur={field.onBlur}
-                                      value={
-                                        isNull(field.value)
-                                          ? nestedValue
-                                          : field.value
-                                      }
-                                      label={nestedKey}
-                                      fullWidth
-                                      margin="normal"
-                                      size="small"
-                                    />
-                                  );
-                                } else {
-                                  // 对于更深层次的嵌套，显示一个简单的提示
-                                  return (
-                                    <Box key={nestedPath} sx={{ margin: 1 }}>
-                                      <Typography variant="body2">
-                                        {nestedKey}: 复杂对象 (保存后可编辑)
-                                      </Typography>
-                                    </Box>
-                                  );
-                                }
-                              }}
-                            />
-                          );
-                        }
-                      )}
-                    </Box>
-                  </Box>
-                );
               }
-            })}
+            )}
           </Box>
         );
       }
@@ -869,9 +1002,9 @@ const OptionalField = ({
         <Controller
           name={path}
           control={control}
-          defaultValue={defaultValue}
+          defaultValue={actualDefaultValue}
           render={({ field }) => {
-            if (typeof defaultValue === "boolean") {
+            if (typeof actualDefaultValue === "boolean") {
               return (
                 <TextField
                   {...field}
@@ -885,14 +1018,14 @@ const OptionalField = ({
                   }
                 />
               );
-            } else if (typeof defaultValue === "number") {
+            } else if (typeof actualDefaultValue === "number") {
               return (
                 <TextField
                   value={field.value ?? ""}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === "") {
-                      field.onChange(defaultValue);
+                      field.onChange(actualDefaultValue);
                     } else {
                       const num = parseFloat(value);
                       !isNaN(num) && field.onChange(num);
@@ -904,7 +1037,7 @@ const OptionalField = ({
                   size="small"
                   type="number"
                   inputProps={{
-                    step: Number.isInteger(defaultValue) ? "1" : "any",
+                    step: Number.isInteger(actualDefaultValue) ? "1" : "any",
                   }}
                 />
               );
@@ -913,7 +1046,7 @@ const OptionalField = ({
                 <TextField
                   onChange={field.onChange}
                   onBlur={field.onBlur}
-                  value={isNull(field.value) ? defaultValue : field.value}
+                  value={isNull(field.value) ? actualDefaultValue : field.value}
                   label={fieldKey}
                   fullWidth
                   margin="normal"
@@ -947,7 +1080,7 @@ const OptionalField = ({
           移除
         </Button>
       </Box>
-      {renderField()}
+      {render()}
     </Box>
   );
 };
