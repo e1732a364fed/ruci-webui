@@ -1,4 +1,5 @@
 {
+  "license": "Unlicense",
   "name": "ruci-webui",
   "private": true,
   "version": "0.0.3",

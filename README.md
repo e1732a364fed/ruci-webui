@@ -91,8 +91,5 @@ all_ruci_config.rs 内含 ruci 配置的全部 rust 代码（已去除无用信�
 
 ## License
 
-This project is released under Creative Commons CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
-
-To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
-
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+This project is released under Unlicense License.
+For more information, please refer to <http://unlicense.org/>
