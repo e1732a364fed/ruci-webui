@@ -338,6 +338,31 @@ export default function App() {
     chainNodePositions,
   ]);
 
+  const handleExportConfigJson = useCallback(() => {
+    const config = getChainTags().config;
+    const exportData = {
+      inbounds: config.inbounds.map((item) => ({
+        tag: item.tag,
+        chain: item.chain,
+      })),
+      outbounds: config.outbounds.map((item) => ({
+        tag: item.tag,
+        chain: item.chain,
+      })),
+      tag_route: config.tag_route,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [inboundNodes, outboundNodes, inboundEdges, outboundEdges, routeEdges]);
+
   const handleImportJson = useCallback((jsonString: string) => {
     try {
       const importData = JSON.parse(jsonString);
@@ -363,6 +388,116 @@ export default function App() {
     } catch (error) {
       console.error("Failed to import JSON:", error);
       alert("Invalid JSON file format");
+    }
+  }, []);
+
+  const handleImportConfigJson = useCallback((jsonString: string) => {
+    try {
+      const importData = JSON.parse(jsonString);
+
+      // 清除现有数据
+      setInboundNodes([]);
+      setOutboundNodes([]);
+      setInboundEdges([]);
+      setOutboundEdges([]);
+      setRouteEdges([]);
+      setChainNodePositions({});
+
+      // 导入入站链
+      if (importData.inbounds) {
+        const newInboundNodes: Node<ChainNodeData>[] = [];
+        const newInboundEdges: Edge[] = [];
+        importData.inbounds.forEach((inbound: any, index: number) => {
+          let prevNodeId: string | null = null;
+          inbound.chain.forEach((item: any, chainIndex: number) => {
+            const type = Object.keys(item)[0];
+            const config = item[type];
+            const nodeId = `${type.toLowerCase()}-${Date.now()}-${index}-${chainIndex}`;
+
+            const node: Node<ChainNodeData> = {
+              id: nodeId,
+              type: "chainNode",
+              position: { x: 100 + chainIndex * 150, y: 100 + index * 150 },
+              data: {
+                type,
+                label: type,
+                category: "inbound",
+                chainTag: inbound.tag,
+                config,
+              },
+            };
+            newInboundNodes.push(node);
+
+            if (prevNodeId) {
+              newInboundEdges.push({
+                id: `${prevNodeId}-${nodeId}`,
+                source: prevNodeId,
+                target: nodeId,
+                type: "chainEdge",
+              });
+            }
+            prevNodeId = nodeId;
+          });
+        });
+        setInboundNodes(newInboundNodes);
+        setInboundEdges(newInboundEdges);
+      }
+
+      // 导入出站链
+      if (importData.outbounds) {
+        const newOutboundNodes: Node<ChainNodeData>[] = [];
+        const newOutboundEdges: Edge[] = [];
+        importData.outbounds.forEach((outbound: any, index: number) => {
+          let prevNodeId: string | null = null;
+          outbound.chain.forEach((item: any, chainIndex: number) => {
+            const type = Object.keys(item)[0];
+            const config = item[type];
+            const nodeId = `${type.toLowerCase()}-${Date.now()}-${index}-${chainIndex}`;
+
+            const node: Node<ChainNodeData> = {
+              id: nodeId,
+              type: "chainNode",
+              position: { x: 100 + chainIndex * 150, y: 100 + index * 150 },
+              data: {
+                type,
+                label: type,
+                category: "outbound",
+                chainTag: outbound.tag,
+                config,
+              },
+            };
+            newOutboundNodes.push(node);
+
+            if (prevNodeId) {
+              newOutboundEdges.push({
+                id: `${prevNodeId}-${nodeId}`,
+                source: prevNodeId,
+                target: nodeId,
+                type: "chainEdge",
+              });
+            }
+            prevNodeId = nodeId;
+          });
+        });
+        setOutboundNodes(newOutboundNodes);
+        setOutboundEdges(newOutboundEdges);
+      }
+
+      // 导入路由
+      if (importData.tag_route) {
+        const newRouteEdges: Edge[] = importData.tag_route.map(
+          ([source, target]: [string, string]) => ({
+            id: `${source}-${target}`,
+            source,
+            target,
+            type: "default",
+          })
+        );
+        setRouteEdges(newRouteEdges);
+      }
+    } catch (error) {
+      console.error("Failed to import config JSON:", error);
+      alert("Invalid config JSON format");
     }
   }, []);
 
@@ -529,6 +664,8 @@ export default function App() {
                 category={chainView}
                 onExportJson={handleExportJson}
                 onImportJson={handleImportJson}
+                onExportConfigJson={handleExportConfigJson}
+                onImportConfigJson={handleImportConfigJson}
               />
             </Grid>
           )}

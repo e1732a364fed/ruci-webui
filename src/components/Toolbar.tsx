@@ -9,6 +9,8 @@ interface ToolbarProps {
   category?: "inbound" | "outbound" | "all";
   onExportJson?: () => void;
   onImportJson?: (jsonData: string) => void;
+  onExportConfigJson?: () => void;
+  onImportConfigJson?: (jsonData: string) => void;
 }
 
 export const Toolbar = ({
@@ -16,11 +18,14 @@ export const Toolbar = ({
   category = "all",
   onExportJson,
   onImportJson,
+  onExportConfigJson,
+  onImportConfigJson,
 }: ToolbarProps) => {
   const [selectedCategory, setSelectedCategory] = useState<
     "inbound" | "outbound"
   >(category === "all" ? "inbound" : category);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const configFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddNode = (
     type: string,
@@ -50,6 +55,10 @@ export const Toolbar = ({
     fileInputRef.current?.click();
   };
 
+  const handleConfigImportClick = () => {
+    configFileInputRef.current?.click();
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && onImportJson) {
@@ -63,6 +72,24 @@ export const Toolbar = ({
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleConfigFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file && onImportConfigJson) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        onImportConfigJson(content);
+      };
+      reader.readAsText(file);
+    }
+    // Reset file input
+    if (configFileInputRef.current) {
+      configFileInputRef.current.value = "";
     }
   };
 
@@ -110,13 +137,40 @@ export const Toolbar = ({
                 size="small"
                 onClick={handleImportClick}
               >
-                Import JSON
+                Import View
               </Button>
             </>
           )}
           {onExportJson && (
             <Button variant="contained" size="small" onClick={onExportJson}>
-              Export JSON
+              Export View
+            </Button>
+          )}
+          {onImportConfigJson && (
+            <>
+              <input
+                type="file"
+                ref={configFileInputRef}
+                style={{ display: "none" }}
+                accept=".json"
+                onChange={handleConfigFileChange}
+              />
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleConfigImportClick}
+              >
+                Import Config
+              </Button>
+            </>
+          )}
+          {onExportConfigJson && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={onExportConfigJson}
+            >
+              Export Config
             </Button>
           )}
         </Box>
