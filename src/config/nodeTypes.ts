@@ -138,7 +138,7 @@ export const SoOptDefault = {
 
 export const NODE_TYPES: NodeTypeConfig[] = [
   // Inbound Nodes
-  new NodeTypeConfig("TproxyTcpResolver", "TproxyTcpResolver", "inbound", {
+  new NodeTypeConfig("TproxyTcpResolver", "Tproxy Tcp Resolver", "inbound", {
     port: optional(0),
     route_ipv6: optional(false),
     proxy_local_udp_53: optional(false),
@@ -146,7 +146,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     auto_route_tcp: optional(false),
     local_net4: optional(""),
   }),
-  new NodeTypeConfig("TproxyUdpListener", "TproxyUdpListener", "inbound", {
+  new NodeTypeConfig("TproxyUdpListener", "Tproxy Udp Listener", "inbound", {
     listen_addr: "",
     sockopt: SoOptDefault,
     ext: ExtDefault,
