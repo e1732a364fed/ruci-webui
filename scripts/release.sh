@@ -23,6 +23,7 @@ sed -i '' 's/"version": "[^"]*"/"version": "'$VERSION'"/' package.json
 
 # 提交更改
 git add package.json
+
 git commit -m "chore: release v$VERSION"
 
 # 创建标签
