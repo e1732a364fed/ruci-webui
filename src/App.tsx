@@ -252,9 +252,9 @@ export default function App() {
     const inbounds = inboundNodes
       .filter(
         (node) =>
-          node.data.is_first &&
           node.data.chainTag &&
-          !node.id.startsWith("group-")
+          !node.id.startsWith("group-") &&
+          isStartNode(node, inboundNodes, inboundEdges)
       )
       .map((node) => ({
         tag: node.data.chainTag,
@@ -264,9 +264,9 @@ export default function App() {
     const outbounds = outboundNodes
       .filter(
         (node) =>
-          node.data.is_first &&
           node.data.chainTag &&
-          !node.id.startsWith("group-")
+          !node.id.startsWith("group-") &&
+          isStartNode(node, outboundNodes, outboundEdges)
       )
       .map((node) => ({
         tag: node.data.chainTag,
@@ -289,17 +289,57 @@ export default function App() {
     };
   };
 
+  const isStartNode = (
+    node: Node<ChainNodeData>,
+    nodes: Node<ChainNodeData>[],
+    edges: Edge[]
+  ) => {
+    let currentNode: Node<ChainNodeData> | undefined = node;
+
+    while (currentNode) {
+      const nextEdge = edges.find((edge) => edge.target === currentNode?.id);
+      const nextNode = nodes.find((node) => node.id === nextEdge?.source);
+      if (nextNode && !nextNode.id.startsWith("group-")) {
+        return false;
+      } else {
+        currentNode = undefined;
+      }
+    }
+    return true;
+  };
+
+  // const isEndNode = (
+  //   node: Node<ChainNodeData>,
+  //   nodes: Node<ChainNodeData>[],
+  //   edges: Edge[]
+  // ) => {
+  //   let currentNode: Node<ChainNodeData> | undefined = node;
+
+  //   while (currentNode) {
+  //     const nextEdge = edges.find((edge) => edge.source === currentNode?.id);
+  //     const nextNode = nodes.find((node) => node.id === nextEdge?.target);
+  //     if (nextNode && !nextNode.id.startsWith("group-")) {
+  //       return false;
+  //     } else {
+  //       currentNode = undefined;
+  //     }
+  //   }
+  //   return true;
+  // };
+
+  /// 返回 Record<string, any>[]
   const getNodeChain = (
     startNode: Node<ChainNodeData>,
     nodes: Node<ChainNodeData>[],
     edges: Edge[]
   ) => {
-    const chain = [];
+    const chain: Record<string, any>[] = [];
     let currentNode: Node<ChainNodeData> | undefined = startNode;
 
     while (currentNode) {
-      let jsonString = JSON.stringify(currentNode.data.config);
-      let x = JSON.parse(jsonString);
+      let x: Record<string, any> = JSON.parse(
+        JSON.stringify(currentNode.data.config)
+      );
       x.type = currentNode.data.type;
       chain.push(x);
 
@@ -430,8 +470,6 @@ export default function App() {
             const config = item; //item[type];
             const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
 
-            let is_first = prevNodeId ? false : true;
-
             const node: Node<ChainNodeData> = {
               id: nodeId,
               type: "chainNode",
@@ -447,7 +485,6 @@ export default function App() {
                 category: "inbound",
                 chainTag: inbound.tag,
                 config,
-                is_first,
               },
             };
 
@@ -483,8 +520,6 @@ export default function App() {
 
             const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
 
-            let is_first = prevNodeId ? false : true;
-
             const node: Node<ChainNodeData> = {
               id: nodeId,
               type: "chainNode",
@@ -500,7 +535,6 @@ export default function App() {
                 category: "outbound",
                 chainTag: outbound.tag,
                 config,
-                is_first,
               },
             };
             newOutboundNodes.push(node);
