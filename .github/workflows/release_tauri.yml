@@ -176,8 +176,9 @@ jobs:
 
       - name: Build Android
         env:
-          NDK_HOME: $NDK_HOME
-        run: bun run tauri android build
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          bun run tauri android build
 
       - name: Sign APK
         run: |
