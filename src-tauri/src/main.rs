@@ -6,7 +6,6 @@ use ruci_cmd::Args;
 fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    // 使用 `block_on` 来阻塞当前线程，直到异步任务完成
     rt.spawn(ruci_cmd::run_main_with_args(Args {
         mode: ruci_cmd::Mode::C,
         config: ruci_cmd::rucimp::DEFAULT_LUA_CONFIG_FILE_NAME.to_string(),

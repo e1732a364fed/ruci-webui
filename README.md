@@ -40,6 +40,9 @@ bun install
 # 启动开发服务器
 bun dev
 
+# 启动 tauri app
+bun run tauri dev
+
 # 构建项目
 bun build
 

@@ -151,9 +151,14 @@ const ControlPanel = ({}: ControlPanelProps) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setStatusMessage(`引擎启动成功: ${JSON.stringify(data)}`);
-        setStatusError(false);
+        const data: string = await response.text();
+        if (data.startsWith("Err")) {
+          setStatusMessage(`引擎启动失败: ${data}`);
+          setStatusError(true);
+        } else {
+          setStatusMessage(`引擎启动成功: ${data}`);
+          setStatusError(false);
+        }
       } else {
         setStatusMessage(`启动错误: ${response.status} ${response.statusText}`);
         setStatusError(true);

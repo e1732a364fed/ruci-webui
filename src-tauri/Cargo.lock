@@ -2982,7 +2982,7 @@ checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 [[package]]
 name = "macro_map"
 version = "0.1.0"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -4575,7 +4575,7 @@ dependencies = [
 [[package]]
 name = "ruci"
 version = "0.0.8"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4607,7 +4607,7 @@ dependencies = [
 [[package]]
 name = "ruci-cmd"
 version = "0.0.6"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "anyhow",
  "axum",
@@ -4652,7 +4652,7 @@ dependencies = [
 [[package]]
 name = "ruci-rustls21"
 version = "0.1.0"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "anyhow",
  "data-source",
@@ -4666,7 +4666,7 @@ dependencies = [
 [[package]]
 name = "ruci-rustls22"
 version = "0.0.1"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4690,7 +4690,7 @@ dependencies = [
 [[package]]
 name = "rucimp"
 version = "0.0.8"
-source = "git+https://github.com/e1732a364fed/ruci/?rev=31d9ac1bd7618d188f73130d799b9da6ebbaed8f#31d9ac1bd7618d188f73130d799b9da6ebbaed8f"
+source = "git+https://github.com/e1732a364fed/ruci/?rev=d35a23fd72b7ad60fb9f744b905df9b17589a83a#d35a23fd72b7ad60fb9f744b905df9b17589a83a"
 dependencies = [
  "TinyUFO",
  "anyhow",

@@ -24,7 +24,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 tokio = { version = "1", features = ["full"] }
-ruci-cmd = { git = "https://github.com/e1732a364fed/ruci/", rev = "31d9ac1bd7618d188f73130d799b9da6ebbaed8f", features = [
+ruci-cmd = { git = "https://github.com/e1732a364fed/ruci/", rev = "d35a23fd72b7ad60fb9f744b905df9b17589a83a", features = [
     "api_server",
     "file_server",
     "utils",
