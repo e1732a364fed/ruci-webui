@@ -1,13 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
   Node,
   Edge,
-  Controls,
-  Background,
   Connection,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  OnEdgesChange,
+  NodeTypes,
   NodeChange,
   EdgeChange,
-  addEdge,
   applyNodeChanges,
   applyEdgeChanges,
 } from "reactflow";
@@ -15,21 +20,37 @@ import "reactflow/dist/style.css";
 import { Box, Grid, Paper, Tabs, Tab } from "@mui/material";
 import { ChainNode, ChainNodeData } from "./components/nodes/ChainNode";
 import { ChainEdge } from "./components/edges/ChainEdge";
+import { GroupNode } from "./components/nodes/GroupNode";
 import { Toolbar } from "./components/Toolbar";
 import NodeConfigPanel from "./components/NodeConfigPanel";
 import JsonPreviewPanel from "./components/JsonPreviewPanel";
 import RouteEditor from "./components/RouteEditor";
+import { ChainView } from "./components/ChainView";
 
-const nodeTypes = {
+type EditorView = "all" | "inbound" | "outbound";
+type EditorTab = "chain" | "route";
+
+interface GroupNodeData {
+  type: "group";
+  category: "inbound" | "outbound";
+  chainTag: string;
+}
+
+type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
+type FlowNodeData = ChainNodeData | GroupNodeData;
+
+const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
+  return !node.id.startsWith("group-");
+};
+
+const nodeTypes: NodeTypes = {
   chainNode: ChainNode,
+  group: GroupNode,
 };
 
 const edgeTypes = {
   chainEdge: ChainEdge,
 };
-
-type EditorView = "all" | "inbound" | "outbound";
-type EditorTab = "chain" | "route";
 
 export default function App() {
   const [inboundNodes, setInboundNodes] = useState<Node<ChainNodeData>[]>([]);
@@ -43,61 +64,30 @@ export default function App() {
   const [editorTab, setEditorTab] = useState<EditorTab>("chain");
   const [chainView, setChainView] = useState<EditorView>("all");
 
-  const onEdgesDelete = useCallback(
-    (edges: Edge[], category: "inbound" | "outbound") => {
-      if (category === "inbound") {
-        edges.forEach((edge) => {
-          const targetNode = inboundNodes.find(
-            (node) => node.id === edge.target
-          );
-          if (targetNode) {
-            setInboundNodes((nodes) =>
-              nodes.map((node) =>
-                node.id === targetNode.id
-                  ? {
-                      ...node,
-                      data: {
-                        ...node.data,
-                        chainTag: node.data.type,
-                      },
-                    }
-                  : node
-              )
-            );
-          }
-        });
-      } else {
-        edges.forEach((edge) => {
-          const targetNode = outboundNodes.find(
-            (node) => node.id === edge.target
-          );
-          if (targetNode) {
-            setOutboundNodes((nodes) =>
-              nodes.map((node) =>
-                node.id === targetNode.id
-                  ? {
-                      ...node,
-                      data: {
-                        ...node.data,
-                        chainTag: node.data.type,
-                      },
-                    }
-                  : node
-              )
-            );
-          }
-        });
-      }
-    },
-    [inboundNodes, outboundNodes]
-  );
-
   const onNodesChange = useCallback(
     (changes: NodeChange[], category: "inbound" | "outbound") => {
       if (category === "inbound") {
-        setInboundNodes((nds) => applyNodeChanges(changes, nds));
+        setInboundNodes((nds) => {
+          const filteredChanges = changes.filter((change) => {
+            if (change.type === "remove") {
+              const node = nds.find((n) => n.id === change.id);
+              return node && !node.id.startsWith("group-");
+            }
+            return true;
+          });
+          return applyNodeChanges(filteredChanges, nds);
+        });
       } else {
-        setOutboundNodes((nds) => applyNodeChanges(changes, nds));
+        setOutboundNodes((nds) => {
+          const filteredChanges = changes.filter((change) => {
+            if (change.type === "remove") {
+              const node = nds.find((n) => n.id === change.id);
+              return node && !node.id.startsWith("group-");
+            }
+            return true;
+          });
+          return applyNodeChanges(filteredChanges, nds);
+        });
       }
     },
     []
@@ -105,24 +95,13 @@ export default function App() {
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[], category: "inbound" | "outbound") => {
-      const removedEdges = changes
-        .filter((change) => change.type === "remove")
-        .map((change) => ({ id: change.id }));
-      if (removedEdges.length > 0) {
-        const edges = category === "inbound" ? inboundEdges : outboundEdges;
-        const deletedEdges = edges.filter((edge) =>
-          removedEdges.some((re) => re.id === edge.id)
-        );
-        onEdgesDelete(deletedEdges, category);
-      }
-
       if (category === "inbound") {
         setInboundEdges((eds) => applyEdgeChanges(changes, eds));
       } else {
         setOutboundEdges((eds) => applyEdgeChanges(changes, eds));
       }
     },
-    [inboundEdges, outboundEdges, onEdgesDelete]
+    []
   );
 
   const onConnect = useCallback(
@@ -246,14 +225,14 @@ export default function App() {
 
   const getChainTags = () => {
     const inboundTags = inboundNodes
-      .filter((node) => node.data.chainTag)
+      .filter((node) => node.data.chainTag && !node.id.startsWith("group-"))
       .map((node) => ({
         tag: node.data.chainTag,
         chain: getNodeChain(node, inboundNodes, inboundEdges),
       }));
 
     const outboundTags = outboundNodes
-      .filter((node) => node.data.chainTag)
+      .filter((node) => node.data.chainTag && !node.id.startsWith("group-"))
       .map((node) => ({
         tag: node.data.chainTag,
         chain: getNodeChain(node, outboundNodes, outboundEdges),
@@ -287,14 +266,18 @@ export default function App() {
     while (currentNode) {
       chain.push({ [currentNode.data.type]: currentNode.data.config });
       const nextEdge = edges.find((edge) => edge.source === currentNode?.id);
-      currentNode = nodes.find((node) => node.id === nextEdge?.target);
+      const nextNode = nodes.find((node) => node.id === nextEdge?.target);
+      if (nextNode && !nextNode.id.startsWith("group-")) {
+        currentNode = nextNode;
+      } else {
+        currentNode = undefined;
+      }
     }
 
     return chain;
   };
 
   const renderChainEditor = () => {
-    const gridSize = chainView === "all" ? 6 : 12;
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -308,8 +291,18 @@ export default function App() {
           </Tabs>
         </Box>
         <Grid container spacing={2} sx={{ height: "calc(100% - 48px)" }}>
-          {(chainView === "all" || chainView === "inbound") && (
-            <Grid item xs={gridSize}>
+          {chainView === "all" && (
+            <Grid item xs={12}>
+              <ChainView
+                in_chainNodes={inboundNodes}
+                out_chainNodes={outboundNodes}
+                inboundEdges={inboundEdges}
+                outboundEdges={outboundEdges}
+              />
+            </Grid>
+          )}
+          {chainView === "inbound" && (
+            <Grid item xs={12}>
               <Paper
                 elevation={3}
                 sx={{
@@ -359,8 +352,8 @@ export default function App() {
               </Paper>
             </Grid>
           )}
-          {(chainView === "all" || chainView === "outbound") && (
-            <Grid item xs={gridSize}>
+          {chainView === "outbound" && (
+            <Grid item xs={12}>
               <Paper
                 elevation={3}
                 sx={{
