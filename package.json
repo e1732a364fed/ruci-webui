@@ -20,10 +20,12 @@
     "@reactflow/core": "^11.11.4",
     "@reactflow/minimap": "^11.7.14",
     "@reactflow/node-resizer": "^2.2.14",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
+    "react-syntax-highlighter": "^15.6.1",
     "reactflow": "^11.11.4"
   },
   "devDependencies": {
