@@ -28,27 +28,27 @@ tauri-plugin-http = "2"
 tauri-plugin-fs = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-ruci-cmd = { git = "https://github.com/e1732a364fed/ruci/", rev = "09d6f81cf8e7fd364f8c46678c52c8d562380bb4", features = [
+ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "c9091852860e2a501ac78ce4c4f3ca9924184f2f", features = [
     "api_server",
     "file_server",
     "utils",
     "lua",
-    "tun",
     "quinn",
     "use-native-tls",
     "smoltcp",
+    "lwip",
     "steganography",
 ] }
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-ruci-cmd = { git = "https://github.com/e1732a364fed/ruci/", rev = "09d6f81cf8e7fd364f8c46678c52c8d562380bb4", features = [
+ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "c9091852860e2a501ac78ce4c4f3ca9924184f2f", features = [
     "api_server",
     # "file_server",
     "utils",
     "lua54",
-    "tun",
     "quinn",
     # "native-tls-vendored", # 无法在 安卓正常编译
     "smoltcp",
+    "lwip",
     "steganography",
 ] }
