@@ -4,8 +4,7 @@ interface JsonPreviewPanelProps {
   config: {
     inbounds?: Record<string, Record<string, any>[]>;
     outbounds?: Record<string, Record<string, any>[]>;
-    tag_route: [string, string][];
-    fallback_route: [string, string][];
+    routes?: Record<string, any>;
   };
 }
 

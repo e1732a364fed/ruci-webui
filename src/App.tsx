@@ -279,10 +279,12 @@ export default function App() {
     const config = {
       inbounds: inbounds,
       outbounds: outbounds,
-      tag_route: routeEdges.map(
-        (edge) => [edge.source, edge.target] as [string, string]
-      ),
-      fallback_route: [] as [string, string][],
+      routes: {
+        tag_route: routeEdges.map(
+          (edge) => [edge.source, edge.target] as [string, string]
+        ),
+        fallback_route: [] as [string, string][],
+      },
     };
 
     return {
@@ -399,11 +401,11 @@ export default function App() {
     const exportData: {
       inbounds: Record<string, any[]>;
       outbounds: Record<string, any[]>;
-      tag_route: [string, string][];
+      routes: Record<string, any>;
     } = {
       inbounds: config.inbounds,
       outbounds: config.outbounds,
-      tag_route: config.tag_route,
+      routes: config.routes,
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -781,8 +783,7 @@ export default function App() {
             ) : (
               <JsonPreviewPanel
                 config={{
-                  tag_route: getChainTags().config.tag_route,
-                  fallback_route: [],
+                  routes: getChainTags().config.routes,
                 }}
               />
             )}
