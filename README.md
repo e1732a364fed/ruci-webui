@@ -13,6 +13,9 @@ Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项
 
 ![screenshot](screenshot.png)
 
+
+本项目还有 tauri 分支, 可以构建 windows/linux/macos/android/ios app
+
 ## 功能特点
 
 - 使用 Vite 构建，支持快速的开发体验和热模块替换（HMR）
