@@ -154,6 +154,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Setup Android build-tools
+        run: |
+          $ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager "build-tools;34.0.0"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
+
       - name: Setup Android NDK
         uses: HoshinoSuzumi/setup-ndk@patch-1
         id: setup-ndk
