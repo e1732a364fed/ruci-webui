@@ -20,10 +20,13 @@ export const Toolbar = ({ onAddNode, category = "all" }: ToolbarProps) => {
     nodeCategory: "inbound" | "outbound",
     defaultConfig: Record<string, any>
   ) => {
+    const xOffset = Math.floor(Math.random() * 200) - 100;
+    const yOffset = Math.floor(Math.random() * 200) - 100;
+
     const newNode: Node<ChainNodeData> = {
       id: `${type.toLowerCase()}-${Date.now()}`,
       type: "chainNode",
-      position: { x: 100, y: 100 },
+      position: { x: 100 + xOffset, y: 100 + yOffset },
       data: {
         type,
         label,
