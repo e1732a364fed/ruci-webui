@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -75,6 +75,11 @@ export const ChainView = ({
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<AllViewNodeData>(initialNodes);
+
+  // 使用 useEffect 来更新节点
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes]);
 
   return (
     <Paper
