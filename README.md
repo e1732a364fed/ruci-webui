@@ -1,6 +1,6 @@
-# Ruci WebUI
+# Ruci WebUI Tauri
 
-Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项目。该项目使用了最新的前端技术栈，包括：
+Ruci WebUI Tauri 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项目。该项目使用了最新的前端技术栈，包括：
 
 - React 18.3
 - TypeScript
@@ -8,6 +8,7 @@ Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项
 - Material-UI (MUI) 6.3
 - ReactFlow 11.11
 - React Hook Form
+- Tauri v2
 
 
 
@@ -31,7 +32,7 @@ Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项
 ### 安装依赖
 
 ```bash
-bun install
+bun i
 ```
 
 ### 开发命令
@@ -43,8 +44,11 @@ bun dev
 # 启动 tauri app
 bun run tauri dev
 
-# 构建项目
+# 构建web项目
 bun build
+
+# 构建 tauri app
+bun run tauri build
 
 # 代码检查
 bun lint

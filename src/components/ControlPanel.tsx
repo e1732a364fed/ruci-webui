@@ -61,6 +61,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
     useState<string>("0");
   const [connectionInfo, setConnectionInfo] = useState<string>("");
   const [selectedConnectionId, setSelectedConnectionId] = useState<string>("");
+  const [workingDir, setWorkingDir] = useState<string>("");
 
   // New states for utility functions
   const [convertInputFileName, setConvertInputFileName] = useState<string>("");
@@ -458,6 +459,33 @@ const ControlPanel = ({}: ControlPanelProps) => {
     } catch (error) {
       setStatusMessage(
         `获取连接信息错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      setStatusError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getWorkingDir = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/app_working_dir`);
+      if (response.ok) {
+        const data = await response.text();
+        setWorkingDir(data);
+        setStatusMessage("工作目录获取成功");
+        setStatusError(false);
+      } else {
+        setStatusMessage(
+          `获取工作目录失败: ${response.status} ${response.statusText}`
+        );
+        setStatusError(true);
+      }
+    } catch (error) {
+      setStatusMessage(
+        `获取工作目录错误: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
@@ -896,6 +924,39 @@ const ControlPanel = ({}: ControlPanelProps) => {
                   margin="normal"
                 />
               )}
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                其它
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      应用工作目录
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      value={workingDir}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                      variant="outlined"
+                      margin="normal"
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={getWorkingDir}
+                      disabled={isLoading}
+                      sx={{ mt: 2 }}
+                    >
+                      获取工作目录
+                    </Button>
+                  </Paper>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
 

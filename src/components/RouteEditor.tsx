@@ -64,7 +64,7 @@ const RouteEditor = ({
     })),
   ];
 
-  const [nodes, setNodes, onNodesChange] =
+  const [nodes, _setNodes, onNodesChange] =
     useNodesState<RouteNodeData>(initialNodes);
   const [edges, setEdges, handleEdgesChange] = useEdgesState(initialEdges);
 
