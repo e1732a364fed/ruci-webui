@@ -30,6 +30,7 @@ jobs:
           prerelease: false
 
   build-tauri:
+    permissions: write-all
     needs: create-release
     strategy:
       fail-fast: false
@@ -174,6 +175,8 @@ jobs:
           bunx tauri icon
 
       - name: Build Android
+        env:
+          NDK_HOME: $NDK_HOME
         run: bun run tauri android build
 
       - name: Sign APK
