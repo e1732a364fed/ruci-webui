@@ -1,50 +1,55 @@
-# React + TypeScript + Vite
+# Ruci WebUI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项目。该项目使用了最新的前端技术栈，包括：
 
-Currently, two official plugins are available:
+- React 18.3
+- TypeScript
+- Vite 6.0
+- Material-UI (MUI) 6.3
+- ReactFlow 11.11
+- React Hook Form
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 功能特点
 
-## Expanding the ESLint configuration
+- 使用 Vite 构建，支持快速的开发体验和热模块替换（HMR）
+- 基于 TypeScript 提供完整的类型支持
+- 使用 Material-UI 组件库实现现代化的用户界面
+- 集成 ReactFlow 用于可视化流程图和节点编辑
+- ESLint 配置确保代码质量
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## 开发指南
 
-- Configure the top-level `parserOptions` property like this:
+### 环境要求
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js
+- Bun (包管理器)
+
+### 安装依赖
+
+```bash
+bun install
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 开发命令
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+```bash
+# 启动开发服务器
+bun dev
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+# 构建项目
+bun build
+
+# 代码检查
+bun lint
+
+# 预览构建结果
+bun preview
 ```
+
+## License
+
+This project is released under Creative Commons CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
+
+To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
