@@ -1,3 +1,5 @@
+import { fetch } from "@tauri-apps/plugin-http";
+
 import { useState, useRef } from "react";
 import {
   Box,

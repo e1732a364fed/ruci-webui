@@ -22,52 +22,82 @@ Ruci WebUI Tauri 是一个基于 React 和 TypeScript 的现代化 Web 用户界
 - 集成 ReactFlow 用于可视化流程图和节点编辑
 - ESLint 配置确保代码质量
 
-## 开发指南
 
-### 环境要求
+## 环境要求
 
-- Node.js
 - Bun (包管理器)
 
-### 安装依赖
+## 安装依赖
 
 ```bash
 bun i
 ```
 
-### 开发命令
+ubuntu:
 
-```bash
-# 启动开发服务器
-bun dev
-
-# 启动 tauri app
-bun run tauri dev
-
-# 构建web项目
-bun build
-
-# 构建 tauri app
-bun run tauri build
-
-# 代码检查
-bun lint
-
-# 预览构建结果
-bun preview
-
-#build html:
-
-bun build --experimental-html --experimental-css ./index.html --outdir=dist
-
-#then you can serve the dist folder by any simple http server, like python -m http.server
+```
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl \
+  wget \
+  file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev
 ```
 
-## 发布流程
+## 开发命令
+
+```bash
+# 启动 tauri app (debug+热更新)
+bun run tauri dev
+
+# 构建 tauri app (release)
+bun run tauri build
+```
+
+构建的 macos 的 app 在
+src-tauri/target/release/bundle/macos
+dmg 在
+src-tauri/target/release/bundle/dmg
+
+### 安卓
+
+rustup target add aarch64-linux-android
+
+配置 ANDROID_HOME, NDK_HOME, JAVA_HOME 环境变量(桌面环境安装 android studio后), 然后：
+
+bun run tauri android init
+
+bun run tauri android build
+(默认会编译所有 cpu target 以生成 universal apk, 此时还要按提示安装其它 target , 如 
+armv7-linux-androideabi , i686-linux-android , x86_64-linux-android
+)
+
+只编译 arm64:
+bun run tauri android build --target aarch64
+
+
+生成的 apk 在
+src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+
+签名：
+keytool -genkey -v -keystore key1 -alias alias1 -keyalg RSA -keysize 2048 -validity 10000
+
+apksigner sign --ks-key-alias alias1 --ks key1 app-universal-release-unsigned.apk
+
+the password for "key1" is six 0.
+
+提供了 scripts/sign_apk.sh, 它签名后，自动将其改名为 app-universal-release-signed.apk.
+
+
+# github release 发布流程
 
 项目配置了自动化的 GitHub Actions 工作流，可以在创建新标签时自动构建并发布到 GitHub Releases。
 
-### 创建新版本
+## 创建新版本
 
 使用提供的脚本创建新版本：
 
@@ -84,7 +114,7 @@ git push && git push --tags
 2. 将 dist 目录打包为 tar.gz 文件
 3. 创建 GitHub Release 并上传构建产物
 
-## 代码
+# 代码
 
 程序的入口点是 App.tsx
 
@@ -96,7 +126,7 @@ all_ruci_config.rs 内含 ruci 配置的全部 rust 代码（已去除无用信�
 
 
 
-## License
+# License
 
 This project is released under Unlicense License.
 For more information, please refer to <http://unlicense.org/>

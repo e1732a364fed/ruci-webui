@@ -20,6 +20,42 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
+        .setup(|_app| {
+            // 在mac中默认双击 .app 程序 其工作目录为 根目录 "/", 这是不行的，因为要生成日志文件
+
+            let mh = homedir::my_home();
+            if let Ok(odir) = mh {
+                if let Some(dir) = odir {
+                    // 安卓这里会设为 "/data"
+
+                    let _ = std::env::set_current_dir(dir);
+                }
+            }
+
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            let log_file = Some(String::new());
+
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            let log_file = None;
+
+            use ruci_cmd::Args;
+
+            tauri::async_runtime::spawn(async {
+                let _r = ruci_cmd::run_main_with_args(Args {
+                    mode: ruci_cmd::Mode::C,
+                    config: ruci_cmd::rucimp::DEFAULT_LUA_CONFIG_FILE_NAME.to_string(),
+                    api_server: true,
+                    log_file,
+                    api_addr: Some("0.0.0.0:40681".to_string()),
+                    // log_level: todo!(),
+                    log_dir: Some("ruci_logs".to_string()),
+                    ..Default::default()
+                })
+                .await;
+            });
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         // .invoke_handler(tauri::generate_handler![run_exe])
