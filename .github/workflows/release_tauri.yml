@@ -182,7 +182,7 @@ jobs:
 
       - name: Sign APK
         run: |
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
           chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./
@@ -205,7 +205,7 @@ jobs:
 
       - name: Sign APK64
         run: |
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
           chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./ruci-gui.apk
