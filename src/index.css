@@ -24,3 +24,8 @@ body {
   height: 8px !important;
   background-color: #555 !important;
 }
+:root {
+  touch-action: pan-x pan-y;
+
+  height: 100%;
+}

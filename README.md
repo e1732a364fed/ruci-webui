@@ -76,7 +76,13 @@ rustup target add aarch64-linux-android
 
 bun run tauri android init
 
+debug:
+bun run tauri android dev 
+该命令会自动打开安卓模拟器, ruci 的日志也会显示在控制台. 连上安卓设备后，运行后它会让您选择一个运行的设备（从真机/模拟器 中选择, 输入0就行)
+
+release:
 bun run tauri android build
+
 (默认会编译所有 cpu target 以生成 universal apk, 此时还要按提示安装其它 target , 如 
 armv7-linux-androideabi , i686-linux-android , x86_64-linux-android
 )
