@@ -56,6 +56,27 @@ bun build --experimental-html --experimental-css ./index.html --outdir=dist
 #then you can serve the dist folder by any simple http server, like python -m http.server
 ```
 
+## 发布流程
+
+项目配置了自动化的 GitHub Actions 工作流，可以在创建新标签时自动构建并发布到 GitHub Releases。
+
+### 创建新版本
+
+使用提供的脚本创建新版本：
+
+```bash
+# 创建新版本（例如 1.0.0）
+./scripts/release.sh 1.0.0
+
+# 推送更改和标签到 GitHub
+git push && git push --tags
+```
+
+推送标签后，GitHub Actions 将自动：
+1. 构建项目
+2. 将 dist 目录打包为 tar.gz 文件
+3. 创建 GitHub Release 并上传构建产物
+
 ## 代码
 
 程序的入口点是 App.tsx

@@ -870,15 +870,7 @@ export default function App() {
             </ListItemIcon>
             <ListItemText primary="Info" />
           </ListItemButton>
-          <ListItemButton
-            selected={currentSidebarView === "nodeEditor"}
-            onClick={() => setSidebarView("nodeEditor")}
-          >
-            <ListItemIcon>
-              <AccountTreeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Node Editor" />
-          </ListItemButton>
+
           <ListItemButton
             selected={currentSidebarView === "controlPanel"}
             onClick={() => setSidebarView("controlPanel")}
@@ -887,6 +879,16 @@ export default function App() {
               <SettingsIcon />
             </ListItemIcon>
             <ListItemText primary="Control Panel" />
+          </ListItemButton>
+
+          <ListItemButton
+            selected={currentSidebarView === "nodeEditor"}
+            onClick={() => setSidebarView("nodeEditor")}
+          >
+            <ListItemIcon>
+              <AccountTreeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Node Editor" />
           </ListItemButton>
         </List>
       </Drawer>

@@ -13,7 +13,7 @@ import {
 interface ControlPanelProps {}
 
 const ControlPanel = ({}: ControlPanelProps) => {
-  const [apiUrl, setApiUrl] = useState<string>("http://127.0.0.1:40681");
+  const [apiUrl, setApiUrl] = useState<string>("http://127.0.0.1:40681/api");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -82,7 +82,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
     setStatusError(false);
 
     try {
-      const response = await fetch(`${apiUrl}/start_engine`, {
+      const response = await fetch(`${apiUrl}/engine/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,7 +119,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
     setStatusError(false);
 
     try {
-      const response = await fetch(`${apiUrl}/stop_engine`, {
+      const response = await fetch(`${apiUrl}/engine/stop`, {
         method: "GET",
       });
 
