@@ -157,7 +157,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
   }),
   new NodeTypeConfig("Adder", "Adder", "inbound", {
     value: 1,
-  } as any),
+  }),
   new NodeTypeConfig("Counter", "Counter", "inbound", {}),
   new NodeTypeConfig("Recorder", "Recorder", "inbound", RecorderDefault),
   new NodeTypeConfig("TLS", "TLS Server", "inbound", {
@@ -205,7 +205,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     alpn: optional(["h2", "http/1.1"]),
     listen_addr: "0.0.0.0:443",
   }),
-  new NodeTypeConfig("Stack", "Stack", "inbound", {} as any),
+  new NodeTypeConfig("Stack", "Stack", "inbound", {}),
   new NodeTypeConfig("SPE1", "SPE1", "inbound", {
     qa: optional([
       ["q1", "a1"],
@@ -226,7 +226,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
   }),
 
   // Outbound Nodes
-  new NodeTypeConfig("Blackhole", "Blackhole", "outbound", {} as any),
+  new NodeTypeConfig("Blackhole", "Blackhole", "outbound", {}),
   new NodeTypeConfig("Direct", "Direct", "outbound", {
     leak_target_addr: optional(true),
     dns_client: optional({
@@ -251,7 +251,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     "outbound",
     BindDialerDefault
   ),
-  new NodeTypeConfig("Adder", "Adder", "outbound", { value: 1 } as any),
+  new NodeTypeConfig("Adder", "Adder", "outbound", { value: 1 }),
   new NodeTypeConfig("Counter", "Counter", "outbound", {}),
   new NodeTypeConfig("Recorder", "Recorder", "outbound", RecorderDefault),
   new NodeTypeConfig("TLS", "TLS Client", "outbound", {

@@ -19,7 +19,21 @@ import ReactFlow, {
   Viewport,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Box, Grid, Paper, Tabs, Tab } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Paper,
+  Tabs,
+  Tab,
+  Drawer,
+  List,
+  // ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  IconButton,
+} from "@mui/material";
 import { ChainNode, ChainNodeData } from "./components/nodes/ChainNode";
 import { ChainEdge } from "./components/edges/ChainEdge";
 import { GroupNode } from "./components/nodes/GroupNode";
@@ -29,9 +43,16 @@ import JsonPreviewPanel from "./components/JsonPreviewPanel";
 import RouteEditor from "./components/RouteEditor";
 import { ChainView } from "./components/ChainView";
 import { AllViewNodeData } from "./components/nodes/AllViewNode";
+import WelcomeInfo from "./components/WelcomeInfo";
+// Import icons
+import MenuIcon from "@mui/icons-material/Menu";
+import InfoIcon from "@mui/icons-material/Info";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
+type SidebarView = "nodeEditor" | "info";
 
 // interface GroupNodeData {
 //   type: "group";
@@ -89,6 +110,11 @@ export default function App() {
   const [chainNodePositions, setChainNodePositions] = useState<
     Record<string, { x: number; y: number }>
   >({});
+  // Add new state for sidebar
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [currentSidebarView, setSidebarView] = useState<SidebarView>("info");
+
+  const drawerWidth = 240;
 
   const onNodesChange = useCallback(
     (changes: NodeChange[], category: "inbound" | "outbound") => {
@@ -723,74 +749,154 @@ export default function App() {
     );
   };
 
-  return (
-    <Box sx={{ height: "100vh", p: 2 }}>
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
-        <Tabs
-          value={editorTab}
-          onChange={(_, newValue: EditorTab) => setEditorTab(newValue)}
-        >
-          <Tab label="Chain Editor" value="chain" />
-          <Tab label="Route Editor" value="route" />
-        </Tabs>
-      </Box>
-      <Grid container spacing={2} sx={{ height: "calc(100% - 48px)" }}>
-        <Grid item xs={9}>
-          {editorTab === "chain" && (
-            <Grid item xs={12}>
-              <Toolbar
-                onAddNode={onAddNode}
-                category={currentView}
-                onExportJson={handleExportJson}
-                onImportJson={handleImportJson}
-                onExportConfigJson={handleExportConfigJson}
-                onImportConfigJson={handleImportConfigJson}
-              />
-            </Grid>
-          )}
-          {editorTab === "chain" ? (
-            renderNodeEditor()
-          ) : (
-            <Paper elevation={3} sx={{ height: "calc(100% - 100px)" }}>
-              <RouteEditor
-                initialEdges={routeEdges}
-                onEdgesChange={setRouteEdges}
-                inboundChains={Object.keys(getChainTags().inbounds)}
-                outboundChains={Object.keys(getChainTags().outbounds)}
-                config={getChainTags().config}
-                viewport={routeViewport}
-                onViewportChange={setRouteViewport}
-              />
-            </Paper>
-          )}
-        </Grid>
-        <Grid item xs={3} sx={{ height: "100%" }}>
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
+  const renderMainContent = () => {
+    if (currentSidebarView === "info") {
+      return <WelcomeInfo />;
+    }
+
+    return (
+      <>
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+          <Tabs
+            value={editorTab}
+            onChange={(_, newValue: EditorTab) => setEditorTab(newValue)}
           >
-            {editorTab === "chain" ? (
-              <>
-                <NodeConfigPanel
-                  selectedNode={selectedNode}
-                  onNodeUpdate={onNodeUpdate}
+            <Tab label="Chain Editor" value="chain" />
+            <Tab label="Route Editor" value="route" />
+          </Tabs>
+        </Box>
+        <Grid container spacing={2} sx={{ height: "calc(100% - 48px)" }}>
+          <Grid item xs={9}>
+            {editorTab === "chain" && (
+              <Grid item xs={12}>
+                <Toolbar
+                  onAddNode={onAddNode}
+                  category={currentView}
+                  onExportJson={handleExportJson}
+                  onImportJson={handleImportJson}
+                  onExportConfigJson={handleExportConfigJson}
+                  onImportConfigJson={handleImportConfigJson}
                 />
-                <JsonPreviewPanel config={getChainTags().config} />
-              </>
-            ) : (
-              <JsonPreviewPanel
-                config={{
-                  routes: getChainTags().config.routes,
-                }}
-              />
+              </Grid>
             )}
-          </Box>
+            {editorTab === "chain" ? (
+              renderNodeEditor()
+            ) : (
+              <Paper elevation={3} sx={{ height: "calc(100% - 100px)" }}>
+                <RouteEditor
+                  initialEdges={routeEdges}
+                  onEdgesChange={setRouteEdges}
+                  inboundChains={Object.keys(getChainTags().inbounds)}
+                  outboundChains={Object.keys(getChainTags().outbounds)}
+                  config={getChainTags().config}
+                  viewport={routeViewport}
+                  onViewportChange={setRouteViewport}
+                />
+              </Paper>
+            )}
+          </Grid>
+          <Grid item xs={3} sx={{ height: "100%" }}>
+            <Box
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              {editorTab === "chain" ? (
+                <>
+                  <NodeConfigPanel
+                    selectedNode={selectedNode}
+                    onNodeUpdate={onNodeUpdate}
+                  />
+                  <JsonPreviewPanel config={getChainTags().config} />
+                </>
+              ) : (
+                <JsonPreviewPanel
+                  config={{
+                    routes: getChainTags().config.routes,
+                  }}
+                />
+              )}
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      </>
+    );
+  };
+
+  return (
+    <Box sx={{ display: "flex", height: "100vh" }}>
+      <Drawer
+        variant="persistent"
+        anchor="left"
+        open={drawerOpen}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: drawerWidth,
+            boxSizing: "border-box",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            padding: 1,
+            justifyContent: "flex-end",
+          }}
+        >
+          <IconButton onClick={() => setDrawerOpen(false)}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        <List>
+          <ListItemButton
+            selected={currentSidebarView === "info"}
+            onClick={() => setSidebarView("info")}
+          >
+            <ListItemIcon>
+              <InfoIcon />
+            </ListItemIcon>
+            <ListItemText primary="Info" />
+          </ListItemButton>
+          <ListItemButton
+            selected={currentSidebarView === "nodeEditor"}
+            onClick={() => setSidebarView("nodeEditor")}
+          >
+            <ListItemIcon>
+              <AccountTreeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Node Editor" />
+          </ListItemButton>
+        </List>
+      </Drawer>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 2,
+          transition: (theme) =>
+            theme.transitions.create("margin", {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+          marginLeft: drawerOpen ? 0 : `-${drawerWidth}px`,
+          width: drawerOpen ? `calc(100% - ${drawerWidth}px)` : "100%",
+          height: "100%",
+        }}
+      >
+        {!drawerOpen && (
+          <IconButton sx={{ mb: 2 }} onClick={() => setDrawerOpen(true)}>
+            <MenuIcon />
+          </IconButton>
+        )}
+        {renderMainContent()}
+      </Box>
     </Box>
   );
 }
