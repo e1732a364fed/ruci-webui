@@ -21,11 +21,33 @@ import {
 
 interface ControlPanelProps {}
 
+// Add Log interface
+interface Log {
+  level: string;
+  message: string;
+  fields: string;
+  timestamp: string;
+  target: string;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
+
+// Add formatTimestamp function
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const pad = (num: number, size: number = 2) =>
+    String(num).padStart(size, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+    date.getSeconds()
+  )}.${pad(date.getMilliseconds(), 3)}`;
+};
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -74,6 +96,12 @@ const ControlPanel = ({}: ControlPanelProps) => {
   const [qrText, setQrText] = useState<string>("");
   const [trojanPassword, setTrojanPassword] = useState<string>("");
   const [qrResult, setQrResult] = useState<string>("");
+
+  // Add states for log monitoring
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [wsStatus, setWsStatus] = useState<string>("未连接");
+  const [wsError, setWsError] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -931,34 +959,79 @@ const ControlPanel = ({}: ControlPanelProps) => {
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
-                其它
+                日志监控
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Paper sx={{ p: 2 }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      应用工作目录
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={workingDir}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      variant="outlined"
-                      margin="normal"
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={getWorkingDir}
-                      disabled={isLoading}
-                      sx={{ mt: 2 }}
-                    >
-                      获取工作目录
-                    </Button>
-                  </Paper>
-                </Grid>
-              </Grid>
+              <Box
+                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}
+              >
+                <Button
+                  variant="contained"
+                  onClick={connectWebSocket}
+                  disabled={wsStatus === "已连接"}
+                >
+                  连接日志服务器
+                </Button>
+                <Typography>状态: {wsStatus}</Typography>
+              </Box>
+              {wsError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {wsError}
+                </Alert>
+              )}
+              <Paper
+                sx={{
+                  p: 2,
+                  maxHeight: "400px",
+                  overflow: "auto",
+                  bgcolor: "#1e1e1e",
+                  fontFamily: "monospace",
+                }}
+              >
+                {logs.map((log, index) => (
+                  <Typography
+                    key={index}
+                    sx={{
+                      fontSize: "0.9rem",
+                      mb: 0.5,
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      color: "#ffffff",
+                      "& .timestamp": {
+                        color: "#666666",
+                      },
+                      "& .level": {
+                        color:
+                          log.level === "ERROR"
+                            ? "#ff6b6b"
+                            : log.level === "WARN"
+                            ? "#ffd93d"
+                            : log.level === "INFO"
+                            ? "#63c5ea"
+                            : "#98c379",
+                      },
+                      "& .target": {
+                        color: "#666666",
+                      },
+                      "& .message": {
+                        color: "#ffffff",
+                      },
+                    }}
+                  >
+                    <span className="timestamp">
+                      {formatTimestamp(log.timestamp)}
+                    </span>{" "}
+                    <span className="level">[{log.level}]</span>{" "}
+                    <span className="target">[{log.target}]</span>{" "}
+                    <span className="message">{log.message}</span>
+                    <span className="message">{log.fields}</span>
+                  </Typography>
+                ))}
+                {logs.length === 0 && (
+                  <Typography sx={{ color: "#666", fontStyle: "italic" }}>
+                    暂无日志记录
+                  </Typography>
+                )}
+              </Paper>
             </Grid>
           </Grid>
 

@@ -1,0 +1,224 @@
+name: Release Tauri
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-22.04
+    permissions: write-all
+    outputs:
+      release_id: ${{ steps.create-release.outputs.id }}
+      release_name: ${{ steps.release-name.outputs.name }}
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - name: Generate release name
+        id: release-name
+        run: |
+          echo "name=ruci-gui-$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: auto-release-${{ steps.release-name.outputs.name }}
+          release_name: ${{ steps.release-name.outputs.name }}
+          draft: false
+          prerelease: false
+
+  build-tauri:
+    permissions: write-all
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tauri
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install frontend dependencies
+        run: bun install
+
+      - name: Build Tauri
+        run: bun run tauri build
+
+      - name: Move Files
+        if: matrix.platform == 'macos-latest'
+        run: |
+          pwd
+          mv src-tauri/target/release/bundle/dmg/*.dmg ruci-gui.dmg
+
+      - name: Upload Mac DMG
+        if: matrix.platform == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ruci-gui.dmg
+          asset_name: ruci-gui.dmg
+          asset_content_type: application/x-apple-diskimage
+
+      - name: Upload Windows EXE
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: src-tauri/target/release/ruci-gui.exe
+          asset_name: ruci_gui.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload Linux Bundles
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          mkdir -p linux-bundles
+          cp src-tauri/target/release/bundle/deb/*.deb linux-bundles/ruci-gui.deb
+          cp src-tauri/target/release/bundle/appimage/*.AppImage linux-bundles/ruci-gui.AppImage
+          cp src-tauri/target/release/bundle/rpm/*.rpm linux-bundles/ruci-gui.rpm
+
+      - name: Upload Linux DEB
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.deb
+          asset_name: ruci-gui.deb
+          asset_content_type: application/vnd.debian.binary-package
+
+      - name: Upload Linux AppImage
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.AppImage
+          asset_name: ruci-gui.AppImage
+          asset_content_type: application/x-executable
+
+      - name: Upload Linux RPM
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.rpm
+          asset_name: ruci-gui.rpm
+          asset_content_type: application/x-rpm
+
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-22.04
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tauri
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android build-tools
+        run: |
+          $ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager "build-tools;34.0.0"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
+          chmod +x ./scripts/sign_apk.sh
+
+      - name: Setup Android NDK
+        uses: HoshinoSuzumi/setup-ndk@patch-1
+        id: setup-ndk
+        with:
+          ndk-version: r27c
+          add-to-path: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
+
+      - name: Install frontend dependencies
+        run: bun install
+
+      - name: Initialize Tauri Android
+        run: |
+          bun run tauri android init
+          bunx tauri icon
+
+      - name: Build Android
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          bun run tauri android build
+
+      - name: Sign APK
+        run: |
+          ./scripts/sign_apk.sh
+          mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./
+
+      - name: Upload Android APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ruci-gui-universal-release-signed.apk
+          asset_name: ruci-gui-universal-release-signed.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Build Android arm64
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          bun run tauri android build --target aarch64
+
+      - name: Sign APK64
+        run: |
+          ./scripts/sign_apk.sh
+          mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./ruci-gui.apk
+
+      - name: Upload Android APK64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ruci-gui.apk
+          asset_name: ruci-gui.apk
+          asset_content_type: application/vnd.android.package-archive
