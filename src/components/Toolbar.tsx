@@ -2,17 +2,25 @@ import { Box, Paper, Typography, Button, Tabs, Tab } from "@mui/material";
 import { NODE_TYPES } from "../config/nodeTypes";
 import { Node } from "reactflow";
 import { ChainNodeData } from "./nodes/ChainNode";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface ToolbarProps {
   onAddNode: (node: Node<ChainNodeData>) => void;
   category?: "inbound" | "outbound" | "all";
+  onExportJson?: () => void;
+  onImportJson?: (jsonData: string) => void;
 }
 
-export const Toolbar = ({ onAddNode, category = "all" }: ToolbarProps) => {
+export const Toolbar = ({
+  onAddNode,
+  category = "all",
+  onExportJson,
+  onImportJson,
+}: ToolbarProps) => {
   const [selectedCategory, setSelectedCategory] = useState<
     "inbound" | "outbound"
   >(category === "all" ? "inbound" : category);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddNode = (
     type: string,
@@ -36,6 +44,26 @@ export const Toolbar = ({ onAddNode, category = "all" }: ToolbarProps) => {
       },
     };
     onAddNode(newNode);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && onImportJson) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        onImportJson(content);
+      };
+      reader.readAsText(file);
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const filteredNodes = NODE_TYPES.filter((node) =>
@@ -67,6 +95,31 @@ export const Toolbar = ({ onAddNode, category = "all" }: ToolbarProps) => {
             <Tab label="Outbound" value="outbound" />
           </Tabs>
         )}
+        <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
+          {onImportJson && (
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept=".json"
+                onChange={handleFileChange}
+              />
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleImportClick}
+              >
+                Import JSON
+              </Button>
+            </>
+          )}
+          {onExportJson && (
+            <Button variant="contained" size="small" onClick={onExportJson}>
+              Export JSON
+            </Button>
+          )}
+        </Box>
       </Box>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         {filteredNodes.map((nodeType) => (

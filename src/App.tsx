@@ -310,6 +310,62 @@ export default function App() {
     setChainNodePositions(positions);
   }, []);
 
+  const handleExportJson = useCallback(() => {
+    const exportData = {
+      inboundNodes,
+      outboundNodes,
+      inboundEdges,
+      outboundEdges,
+      routeEdges,
+      chainNodePositions,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "flow-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [
+    inboundNodes,
+    outboundNodes,
+    inboundEdges,
+    outboundEdges,
+    routeEdges,
+    chainNodePositions,
+  ]);
+
+  const handleImportJson = useCallback((jsonString: string) => {
+    try {
+      const importData = JSON.parse(jsonString);
+
+      if (importData.inboundNodes) {
+        setInboundNodes(importData.inboundNodes);
+      }
+      if (importData.outboundNodes) {
+        setOutboundNodes(importData.outboundNodes);
+      }
+      if (importData.inboundEdges) {
+        setInboundEdges(importData.inboundEdges);
+      }
+      if (importData.outboundEdges) {
+        setOutboundEdges(importData.outboundEdges);
+      }
+      if (importData.routeEdges) {
+        setRouteEdges(importData.routeEdges);
+      }
+      if (importData.chainNodePositions) {
+        setChainNodePositions(importData.chainNodePositions);
+      }
+    } catch (error) {
+      console.error("Failed to import JSON:", error);
+      alert("Invalid JSON file format");
+    }
+  }, []);
+
   const renderChainEditor = () => {
     return (
       <>
@@ -467,10 +523,14 @@ export default function App() {
       <Grid container spacing={2} sx={{ height: "calc(100% - 48px)" }}>
         <Grid item xs={9}>
           {editorTab === "chain" && (
-            <Toolbar
-              onAddNode={onAddNode}
-              category={chainView === "all" ? "all" : chainView}
-            />
+            <Grid item xs={12}>
+              <Toolbar
+                onAddNode={onAddNode}
+                category={chainView}
+                onExportJson={handleExportJson}
+                onImportJson={handleImportJson}
+              />
+            </Grid>
           )}
           {editorTab === "chain" ? (
             renderChainEditor()
