@@ -1,0 +1,17 @@
+{
+  "inbounds": {
+    "listen1": [
+      {
+        "type": "BindDialer",
+        "bind_addr": "ip://#123"
+      }
+    ]
+  },
+  "outbounds": {
+    "dial1": [
+      {
+        "type": "Direct"
+      }
+    ]
+  }
+}

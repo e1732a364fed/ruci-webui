@@ -1,0 +1,51 @@
+{
+  "files": [
+    "0_tun_fd_direct.json"
+    ,"index.json"
+  ],
+  "directories": {
+    "local": {
+  "files": [
+    "0_direct.json"
+    ,"10_stdin_trojan.json"
+    ,"11_stdin_blackhole.json"
+    ,"12_fileio_trojan.json"
+    ,"13_route_1.json"
+    ,"13_route_2.json"
+    ,"14_stdio_adder_udp_fixed_target_addr.json"
+    ,"15_tun_stdio_out.json"
+    ,"16_tun.json"
+    ,"17_tcp_ip_stack.json"
+    ,"18_recorder.json"
+    ,"19_recorder_trojans.json"
+    ,"1_direct_dns.json"
+    ,"20_spe1.json"
+    ,"21_lua_example1.json"
+    ,"22_lua_example2.json"
+    ,"24_mitm.json"
+    ,"4_trojan.json"
+    ,"5_unix.json"
+    ,"6_ws.json"
+    ,"7_h2.json"
+    ,"9_stdin_adder.json"
+  ],
+  "directories": {
+  }
+}
+    ,"remote": {
+  "files": [
+    "14_stdio_adder_udp_fixed_target_addr.json"
+    ,"20_spe1.json"
+    ,"21_lua_example1.json"
+    ,"22_lua_example2.json"
+    ,"24_mitm.json"
+    ,"3_tproxy2.json"
+    ,"4_trojans.json"
+    ,"5_unix.json"
+    ,"7_h2.json"
+  ],
+  "directories": {
+  }
+}
+  }
+}

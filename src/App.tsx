@@ -51,12 +51,18 @@ import InfoIcon from "@mui/icons-material/Info";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { MenuBook } from "@mui/icons-material";
+import { MenuBook, Code } from "@mui/icons-material";
 import ManualPanel from "./components/ManualPanel";
+import ExamplesPanel from "./components/ExamplesPanel";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
-type SidebarView = "nodeEditor" | "info" | "controlPanel" | "manual";
+type SidebarView =
+  | "nodeEditor"
+  | "info"
+  | "controlPanel"
+  | "manual"
+  | "examples";
 
 const nodeTypes: NodeTypes = {
   chainNode: ChainNode,
@@ -770,6 +776,11 @@ export default function App() {
     if (currentSidebarView === "manual") {
       return <ManualPanel />;
     }
+
+    if (currentSidebarView === "examples") {
+      return <ExamplesPanel />;
+    }
+
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -878,7 +889,7 @@ export default function App() {
             <ListItemIcon>
               <InfoIcon />
             </ListItemIcon>
-            <ListItemText primary="Info" />
+            <ListItemText primary="信息" />
           </ListItemButton>
 
           <ListItemButton
@@ -888,7 +899,7 @@ export default function App() {
             <ListItemIcon>
               <SettingsIcon />
             </ListItemIcon>
-            <ListItemText primary="Control Panel" />
+            <ListItemText primary="控制面板" />
           </ListItemButton>
 
           <ListItemButton
@@ -898,7 +909,7 @@ export default function App() {
             <ListItemIcon>
               <AccountTreeIcon />
             </ListItemIcon>
-            <ListItemText primary="Node Editor" />
+            <ListItemText primary="节点编辑器" />
           </ListItemButton>
 
           <ListItemButton
@@ -908,7 +919,17 @@ export default function App() {
             <ListItemIcon>
               <MenuBook />
             </ListItemIcon>
-            <ListItemText primary="Manual" />
+            <ListItemText primary="手册" />
+          </ListItemButton>
+
+          <ListItemButton
+            selected={currentSidebarView === "examples"}
+            onClick={() => setSidebarView("examples")}
+          >
+            <ListItemIcon>
+              <Code />
+            </ListItemIcon>
+            <ListItemText primary="示例" />
           </ListItemButton>
         </List>
       </Drawer>

@@ -1,0 +1,20 @@
+{
+  "inbounds": {
+    "listen1": [
+      {
+        "type": "Listener",
+        "listen_addr": "0.0.0.0:10801"
+      },
+      {
+        "type": "Socks5Http"
+      }
+    ]
+  },
+  "outbounds": {
+    "dial1": [
+      {
+        "type": "Direct"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "files": [
+  ],
+  "directories": {
+    "local": {
+  "files": [
+    "0_direct.lua"
+    ,"10_stdin_trojan.lua"
+    ,"11_stdin_blackhole.lua"
+    ,"12_fileio_trojan.lua"
+    ,"13_route_1.lua"
+    ,"13_route_2.lua"
+    ,"14_stdio_adder_udp_fixed_target_addr.lua"
+    ,"15_tun_stdio_out.lua"
+    ,"16_tun.lua"
+    ,"17_tcp_ip_stack.lua"
+    ,"18_recorder.lua"
+    ,"19_recorder_trojans.lua"
+    ,"1_direct_dns.lua"
+    ,"20_spe1.lua"
+    ,"21_lua_example1.lua"
+    ,"22_lua_example2.lua"
+    ,"24_mitm.lua"
+    ,"4_trojan.lua"
+    ,"5_unix.lua"
+    ,"6_ws.lua"
+    ,"7_h2.lua"
+    ,"8_quic.lua"
+    ,"9_stdin_adder.lua"
+  ],
+  "directories": {
+  }
+}
+    ,"remote": {
+  "files": [
+    "14_stdio_adder_udp_fixed_target_addr.lua"
+    ,"16_tun.lua"
+    ,"20_spe1.lua"
+    ,"21_lua_example1.lua"
+    ,"22_lua_example2.lua"
+    ,"24_mitm.lua"
+    ,"3_tproxy2.lua"
+    ,"4_trojans.lua"
+    ,"5_unix.lua"
+    ,"6_ws.lua"
+    ,"7_h2.lua"
+    ,"8_quic.lua"
+  ],
+  "directories": {
+  }
+}
+  }
+}
