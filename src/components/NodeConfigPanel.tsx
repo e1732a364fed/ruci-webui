@@ -3,7 +3,8 @@ import { Typography, TextField, Box, Button } from "@mui/material";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { ChainNodeData } from "./nodes/ChainNode";
 import { NODE_TYPES } from "../config/nodeTypes";
-import { get, set } from "lodash";
+import _ from "lodash"; // bun i lodash, bun i -D @types/lodash
+import { useEffect } from "react";
 
 interface NodeConfigPanelProps {
   selectedNode: Node<ChainNodeData> | null;
@@ -14,9 +15,23 @@ const NodeConfigPanel = ({
   selectedNode,
   onNodeUpdate,
 }: NodeConfigPanelProps) => {
-  const { control, handleSubmit } = useForm();
-  const { watch } = useForm();
-  
+  const { control, reset, handleSubmit } = useForm({
+    defaultValues: selectedNode?.data.config || {},
+    shouldUnregister: true,
+  });
+
+  useEffect(() => {
+    if (selectedNode) {
+      // 使用异步重置确保完全清除旧状态
+      reset(selectedNode.data.config || {}, {
+        keepDefaultValues: false,
+        keepDirty: false,
+      });
+    } else {
+      reset({});
+    }
+  }, [selectedNode, reset]);
+
   if (!selectedNode) {
     return (
       <Typography variant="body1" align="center">
@@ -24,8 +39,25 @@ const NodeConfigPanel = ({
       </Typography>
     );
   }
-  
+
   const onSubmit = (data: any) => {
+    const verifyNumberTypes = (obj: any, template: any) => {
+      Object.entries(template).forEach(([key, defaultValue]) => {
+        if (typeof defaultValue === "object") {
+          verifyNumberTypes(obj[key], defaultValue);
+        } else if (typeof defaultValue === "number") {
+          console.assert(
+            typeof obj[key] === "number",
+            `${key} should be number`
+          );
+        }
+      });
+    };
+
+    verifyNumberTypes(data, selectedNode.data.config);
+
+    console.log("data", data, "seldata", selectedNode.data);
+
     onNodeUpdate({
       ...selectedNode,
       data: {
@@ -57,7 +89,7 @@ const NodeConfigPanel = ({
               <ArrayField
                 name={currentPath}
                 control={control}
-                defaultValue={get(config, key, [])}
+                defaultValue={_.get(config, key, [])}
                 label={key}
               />
             </Box>
@@ -70,7 +102,7 @@ const NodeConfigPanel = ({
             >
               <Typography variant="subtitle2">{key}</Typography>
               {renderConfigFields(
-                get(config, key, {}),
+                _.get(config, key, {}),
                 defaultValue,
                 currentPath
               )}
@@ -78,12 +110,51 @@ const NodeConfigPanel = ({
           );
         }
       } else {
+        if (typeof defaultValue === "number") {
+          return (
+            <Controller
+              key={currentPath}
+              name={currentPath}
+              control={control}
+              defaultValue={_.get(config, key, defaultValue)}
+              render={({ field }) => {
+                const handleChange = (
+                  e: React.ChangeEvent<HTMLInputElement>
+                ) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    field.onChange(defaultValue);
+                  } else {
+                    const num = parseFloat(value);
+                    !isNaN(num) && field.onChange(num);
+                  }
+                };
+
+                return (
+                  <TextField
+                    value={field.value ?? ""}
+                    onChange={handleChange}
+                    label={key}
+                    fullWidth
+                    margin="normal"
+                    size="small"
+                    type="number"
+                    inputProps={{
+                      step: Number.isInteger(defaultValue) ? "1" : "any",
+                    }}
+                  />
+                );
+              }}
+            />
+          );
+        }
+
         return (
           <Controller
             key={currentPath}
             name={currentPath}
             control={control}
-            defaultValue={get(config, key, defaultValue)}
+            defaultValue={_.get(config, key, defaultValue)}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -113,12 +184,7 @@ const NodeConfigPanel = ({
             selectedNode.data.config,
             nodeTypeConfig.defaultConfig
           )}
-        <Button
-          type="submit"
-          variant="contained"
-          sx={{ mt: 2 }}
-          fullWidth
-        >
+        <Button type="submit" variant="contained" sx={{ mt: 2 }} fullWidth>
           Save Changes
         </Button>
       </form>
@@ -126,47 +192,52 @@ const NodeConfigPanel = ({
   );
 };
 
-// 新增的ArrayField组件
 const ArrayField = ({ control, name, defaultValue, label }: any) => {
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name,
-  });
+  const { fields, append, remove } = useFieldArray({ control, name });
+  const elementType =
+    defaultValue[0] !== undefined ? typeof defaultValue[0] : "string";
 
   return (
     <div>
       <Typography variant="subtitle2">{label}</Typography>
       {fields.map((field, index) => (
-        <Box
-          key={field.id}
-          sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1 }}
-        >
+        <Box key={field.id} sx={{ display: "flex", gap: 1, mb: 1 }}>
           <Controller
             name={`${name}.${index}`}
             control={control}
-            defaultValue={defaultValue[index] || ""}
+            defaultValue={defaultValue[index] ?? ""}
             render={({ field }) => (
-              <TextField {...field} fullWidth size="small" />
+              <TextField
+                {...field}
+                fullWidth
+                size="small"
+                type={elementType === "number" ? "number" : "text"}
+                onChange={(e) => {
+                  if (elementType === "number") {
+                    const num = parseFloat(e.target.value);
+                    field.onChange(isNaN(num) ? 0 : num);
+                  } else {
+                    field.onChange(e.target.value);
+                  }
+                }}
+                inputProps={{
+                  step:
+                    elementType === "number" &&
+                    Number.isInteger(defaultValue[index])
+                      ? "1"
+                      : "any",
+                }}
+              />
             )}
           />
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => remove(index)}
-          >
-            Delete
-          </Button>
+          <Button onClick={() => remove(index)}>Delete</Button>
         </Box>
       ))}
-      <Button
-        variant="contained"
-        size="small"
-        onClick={() => append("")}
-        sx={{ mt: 1 }}
-      >
+      <Button onClick={() => append(elementType === "number" ? 0 : "")}>
         Add Item
       </Button>
     </div>
   );
 };
+
 export default NodeConfigPanel;
