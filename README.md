@@ -64,6 +64,9 @@ Map类型在 config/nodeTypes.ts 中的 NODE_TYPES 定义
 
 将Map信息转换为 json 显示的功能是在 App.tsx 中的 getNodeChain 函数
 
+all_ruci_config.rs 内含 ruci 配置的全部 rust 代码（已去除无用信息），用于为 nodeTypes.ts 作参考。
+
+
 
 ## License
 

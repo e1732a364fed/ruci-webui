@@ -64,7 +64,7 @@ export default function App() {
     null
   );
   const [editorTab, setEditorTab] = useState<EditorTab>("chain");
-  const [chainView, setChainView] = useState<EditorView>("all");
+  const [currentView, setChainView] = useState<EditorView>("all");
   const [chainViewport, setChainViewport] = useState<Viewport>({
     x: 0,
     y: 0,
@@ -572,12 +572,12 @@ export default function App() {
     }
   }, []);
 
-  const renderChainEditor = () => {
+  const renderNodeEditor = () => {
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
           <Tabs
-            value={chainView}
+            value={currentView}
             onChange={(_, newValue: EditorView) => setChainView(newValue)}
           >
             <Tab label="All" value="all" />
@@ -586,7 +586,7 @@ export default function App() {
           </Tabs>
         </Box>
         <Grid container spacing={2} sx={{ height: "calc(100% - 48px)" }}>
-          {chainView === "all" && (
+          {currentView === "all" && (
             <Grid item xs={12}>
               <ChainView
                 in_chainNodes={inboundNodes}
@@ -598,7 +598,7 @@ export default function App() {
               />
             </Grid>
           )}
-          {chainView === "inbound" && (
+          {currentView === "inbound" && (
             <Grid item xs={12}>
               <Paper
                 elevation={3}
@@ -651,7 +651,7 @@ export default function App() {
               </Paper>
             </Grid>
           )}
-          {chainView === "outbound" && (
+          {currentView === "outbound" && (
             <Grid item xs={12}>
               <Paper
                 elevation={3}
@@ -730,7 +730,7 @@ export default function App() {
             <Grid item xs={12}>
               <Toolbar
                 onAddNode={onAddNode}
-                category={chainView}
+                category={currentView}
                 onExportJson={handleExportJson}
                 onImportJson={handleImportJson}
                 onExportConfigJson={handleExportConfigJson}
@@ -739,7 +739,7 @@ export default function App() {
             </Grid>
           )}
           {editorTab === "chain" ? (
-            renderChainEditor()
+            renderNodeEditor()
           ) : (
             <Paper elevation={3} sx={{ height: "calc(100% - 100px)" }}>
               <RouteEditor

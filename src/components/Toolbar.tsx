@@ -111,7 +111,7 @@ export const Toolbar = ({
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Typography variant="h6">Add {category} Node</Typography>
+        <Typography variant="h6"> Toolbar </Typography>
         {category === "all" && (
           <Tabs
             value={selectedCategory}
