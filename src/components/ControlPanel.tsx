@@ -23,6 +23,7 @@ interface ControlPanelProps {}
 interface Log {
   level: string;
   message: string;
+  fields: string;
   timestamp: string;
   target: string;
 }
@@ -508,29 +509,30 @@ const ControlPanel = ({}: ControlPanelProps) => {
         let s: string = event.data;
         const log = JSON.parse(s); // timestamp, fields, target, level
 
-        setLogs((prevLogs) =>
-          [
-            ...prevLogs,
-            {
-              level: log.level,
-              message: JSON.stringify(log.fields.message),
-              timestamp: log.timestamp,
-              target: log.target,
-            },
-          ].slice(-100)
-        ); // Keep last 100 logs
+        let fields_without_msg = JSON.parse(JSON.stringify(log.fields));
+        delete fields_without_msg.message;
+
+        setLogs((prevLogs) => [
+          ...prevLogs,
+          {
+            level: log.level,
+            message: JSON.stringify(log.fields.message),
+            fields: JSON.stringify(fields_without_msg),
+            timestamp: log.timestamp,
+            target: log.target,
+          },
+        ]);
       } catch {
-        setLogs((prevLogs) =>
-          [
-            ...prevLogs,
-            {
-              level: "INFO",
-              message: event.data,
-              timestamp: new Date().toISOString(),
-              target: "unknown",
-            },
-          ].slice(-100)
-        );
+        setLogs((prevLogs) => [
+          ...prevLogs,
+          {
+            level: "INFO",
+            message: event.data,
+            fields: "",
+            timestamp: new Date().toISOString(),
+            target: "unknown",
+          },
+        ]);
       }
     };
 
@@ -1051,6 +1053,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
                     <span className="level">[{log.level}]</span>{" "}
                     <span className="target">[{log.target}]</span>{" "}
                     <span className="message">{log.message}</span>
+                    <span className="message">{log.fields}</span>
                   </Typography>
                 ))}
                 {logs.length === 0 && (
