@@ -22,7 +22,17 @@
           "url": "https://*:*"
         }
       ],
-      "deny": [{ "url": "https://private.tauri.app" }]
+      "deny": [
+        {
+          "url": "https://private.tauri.app"
+        }
+      ]
+    },
+    "fs:default",
+    "fs:allow-read",
+    {
+      "identifier": "fs:allow-download-write",
+      "allow": [{ "path": "$BaseDirectory/Downloads/*" }]
     }
   ]
 }

@@ -20,6 +20,7 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .setup(|_app| {
             // 在mac中默认双击 .app 程序 其工作目录为 根目录 "/", 这是不行的，因为要生成日志文件
