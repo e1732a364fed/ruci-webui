@@ -53,7 +53,7 @@ export const Toolbar = ({ onAddNode, category = "all" }: ToolbarProps) => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Typography variant="h6">Add Node</Typography>
+        <Typography variant="h6">Add {category} Node</Typography>
         {category === "all" && (
           <Tabs
             value={selectedCategory}
