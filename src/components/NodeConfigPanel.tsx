@@ -3,7 +3,7 @@ import { Typography, TextField, Box, Button } from "@mui/material";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { ChainNodeData } from "./nodes/ChainNode";
 import { NODE_TYPES } from "../config/nodeTypes";
-import _ from "lodash"; // bun i lodash, bun i -D @types/lodash
+import _, { isNull } from "lodash"; // bun i lodash, bun i -D @types/lodash
 import { useEffect } from "react";
 
 interface NodeConfigPanelProps {
@@ -42,6 +42,9 @@ const NodeConfigPanel = ({
 
   const onSubmit = (data: any) => {
     const verifyNumberTypes = (obj: any, template: any) => {
+      if (isNull(template)) {
+        return true;
+      }
       Object.entries(template).forEach(([key, defaultValue]) => {
         if (typeof defaultValue === "object") {
           verifyNumberTypes(obj[key], defaultValue);
@@ -55,8 +58,6 @@ const NodeConfigPanel = ({
     };
 
     verifyNumberTypes(data, selectedNode.data.config);
-
-    // console.log("data", data, "seldata", selectedNode.data);
 
     onNodeUpdate({
       ...selectedNode,
@@ -78,7 +79,6 @@ const NodeConfigPanel = ({
     defaultConfig: any,
     path: string = ""
   ) => {
-    // console.log("config", config, "defaultConfig", defaultConfig);
     return Object.entries(defaultConfig || {}).map(([key, defaultValue]) => {
       const currentPath = path ? `${path}.${key}` : key;
 
@@ -181,10 +181,18 @@ const NodeConfigPanel = ({
             key={currentPath}
             name={currentPath}
             control={control}
-            defaultValue={_.get(config, key, defaultValue)}
-            render={({ field }) => (
+            defaultValue={
+              isNull(_.get(config, key, defaultValue))
+                ? defaultValue
+                : _.get(config, key, defaultValue)
+            }
+            render={({ field: { onChange, onBlur, value, ref } }) => (
               <TextField
-                {...field}
+                // {...field}
+                onChange={onChange} // send value to hook form
+                onBlur={onBlur} // notify when input is touched
+                ref={ref} //
+                value={isNull(value) ? defaultValue : value}
                 label={key}
                 fullWidth
                 margin="normal"
