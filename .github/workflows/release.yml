@@ -31,6 +31,9 @@ jobs:
       - name: Build project
         run: bun build --experimental-html --experimental-css ./index.html --outdir=dist
 
+      - name: Copy public folder
+        run: mv public/ dist/
+
       - name: Create tarball
         run: tar -czvf dist.tar.gz dist
 
