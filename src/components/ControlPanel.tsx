@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -19,11 +19,32 @@ import {
 
 interface ControlPanelProps {}
 
+// Add Log interface
+interface Log {
+  level: string;
+  message: string;
+  timestamp: string;
+  target: string;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
+
+// Add formatTimestamp function
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const pad = (num: number, size: number = 2) =>
+    String(num).padStart(size, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+    date.getSeconds()
+  )}.${pad(date.getMilliseconds(), 3)}`;
+};
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -71,6 +92,12 @@ const ControlPanel = ({}: ControlPanelProps) => {
   const [qrText, setQrText] = useState<string>("");
   const [trojanPassword, setTrojanPassword] = useState<string>("");
   const [qrResult, setQrResult] = useState<string>("");
+
+  // Add states for log monitoring
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [wsStatus, setWsStatus] = useState<string>("未连接");
+  const [wsError, setWsError] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -461,6 +488,70 @@ const ControlPanel = ({}: ControlPanelProps) => {
       setIsLoading(false);
     }
   };
+
+  // Add WebSocket connection function
+  const connectWebSocket = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.close();
+    }
+
+    const ws = new WebSocket("ws://127.0.0.1:40682/ws/logs");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setWsStatus("已连接");
+      setWsError(null);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        let s: string = event.data;
+        const log = JSON.parse(s); // timestamp, fields, target, level
+
+        setLogs((prevLogs) =>
+          [
+            ...prevLogs,
+            {
+              level: log.level,
+              message: JSON.stringify(log.fields.message),
+              timestamp: log.timestamp,
+              target: log.target,
+            },
+          ].slice(-100)
+        ); // Keep last 100 logs
+      } catch {
+        setLogs((prevLogs) =>
+          [
+            ...prevLogs,
+            {
+              level: "INFO",
+              message: event.data,
+              timestamp: new Date().toISOString(),
+              target: "unknown",
+            },
+          ].slice(-100)
+        );
+      }
+    };
+
+    ws.onclose = () => {
+      setWsStatus("已断开");
+    };
+
+    ws.onerror = (error) => {
+      setWsError(`连接错误: ${error}`);
+      setWsStatus("错误");
+    };
+  };
+
+  // Add cleanup function
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
 
   return (
     <Box sx={{ p: 2, height: "100%" }}>
@@ -891,6 +982,83 @@ const ControlPanel = ({}: ControlPanelProps) => {
                   margin="normal"
                 />
               )}
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                日志监控
+              </Typography>
+              <Box
+                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}
+              >
+                <Button
+                  variant="contained"
+                  onClick={connectWebSocket}
+                  disabled={wsStatus === "已连接"}
+                >
+                  连接日志服务器
+                </Button>
+                <Typography>状态: {wsStatus}</Typography>
+              </Box>
+              {wsError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {wsError}
+                </Alert>
+              )}
+              <Paper
+                sx={{
+                  p: 2,
+                  maxHeight: "400px",
+                  overflow: "auto",
+                  bgcolor: "#1e1e1e",
+                  fontFamily: "monospace",
+                }}
+              >
+                {logs.map((log, index) => (
+                  <Typography
+                    key={index}
+                    sx={{
+                      fontSize: "0.9rem",
+                      mb: 0.5,
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      color: "#ffffff",
+                      "& .timestamp": {
+                        color: "#666666",
+                      },
+                      "& .level": {
+                        color:
+                          log.level === "ERROR"
+                            ? "#ff6b6b"
+                            : log.level === "WARN"
+                            ? "#ffd93d"
+                            : log.level === "INFO"
+                            ? "#63c5ea"
+                            : "#98c379",
+                      },
+                      "& .target": {
+                        color: "#666666",
+                      },
+                      "& .message": {
+                        color: "#ffffff",
+                      },
+                    }}
+                  >
+                    <span className="timestamp">
+                      {formatTimestamp(log.timestamp)}
+                    </span>{" "}
+                    <span className="level">[{log.level}]</span>{" "}
+                    <span className="target">[{log.target}]</span>{" "}
+                    <span className="message">{log.message}</span>
+                  </Typography>
+                ))}
+                {logs.length === 0 && (
+                  <Typography sx={{ color: "#666", fontStyle: "italic" }}>
+                    暂无日志记录
+                  </Typography>
+                )}
+              </Paper>
             </Grid>
           </Grid>
 
