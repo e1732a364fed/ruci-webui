@@ -60,7 +60,14 @@ jobs:
         run: bun install
 
       - name: Build Tauri
-        run: bun run tauri build
+        run: |
+          bun run tauri build
+          mv src-tauri/target/release/bundle/dmg/*.dmg ruci-gui.dmg
+
+      - name: Move Files
+        if: matrix.platform == 'macos-latest'
+        run: |
+          mv src-tauri/target/release/bundle/dmg/*.dmg ruci-gui.dmg
 
       - name: Upload Mac DMG
         if: matrix.platform == 'macos-latest'
@@ -69,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: src-tauri/target/release/bundle/dmg/*.dmg
+          asset_path: ruci-gui.dmg
           asset_name: ruci-gui.dmg
           asset_content_type: application/x-apple-diskimage
 
@@ -80,25 +87,50 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: src-tauri/target/release/ruci_gui.exe
+          asset_path: src-tauri/target/release/ruci-gui.exe
           asset_name: ruci_gui.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
       - name: Upload Linux Bundles
         if: matrix.platform == 'ubuntu-latest'
         run: |
-          for file in src-tauri/target/release/bundle/{appimage,deb,rpm}/*; do
-            if [ -f "$file" ]; then
-              asset_name=$(basename "$file")
-              curl -L \
-                -X POST \
-                -H "Accept: application/vnd.github+json" \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: application/octet-stream" \
-                --data-binary "@$file" \
-                "${{ needs.create-release.outputs.upload_url }}?name=$asset_name"
-            fi
-          done
+          mkdir -p linux-bundles
+          cp src-tauri/target/release/bundle/deb/*.deb linux-bundles/ruci-gui.deb
+          cp src-tauri/target/release/bundle/appimage/*.AppImage linux-bundles/ruci-gui.AppImage
+          cp src-tauri/target/release/bundle/rpm/*.rpm linux-bundles/ruci-gui.rpm
+
+      - name: Upload Linux DEB
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.deb
+          asset_name: ruci-gui.deb
+          asset_content_type: application/vnd.debian.binary-package
+
+      - name: Upload Linux AppImage
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.AppImage
+          asset_name: ruci-gui.AppImage
+          asset_content_type: application/x-executable
+
+      - name: Upload Linux RPM
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: linux-bundles/ruci-gui.rpm
+          asset_name: ruci-gui.rpm
+          asset_content_type: application/x-rpm
 
   build-android:
     needs: create-release
