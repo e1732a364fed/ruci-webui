@@ -84,7 +84,6 @@ export enum LookupIpStrategy {
 export const ExtDefault = {
   fixed_target_addr: optional("fake.com:80"),
   pre_defined_early_data: optional("abc"),
-  xx: optional({ a: "x" }),
 };
 
 export const BindDialerDefault = {
@@ -109,7 +108,6 @@ export const BindDialerDefault = {
     router_ip: "",
   }),
   ext: optional(ExtDefault),
-  // xx: optional({ xx: optional({ xx: optional({ xx: optional(1) }) }) }),
 };
 
 export const RecorderDefault = {
