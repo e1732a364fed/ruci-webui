@@ -196,3 +196,26 @@ jobs:
           asset_path: ruci-gui-universal-release-signed.apk
           asset_name: ruci-gui-universal-release-signed.apk
           asset_content_type: application/vnd.android.package-archive
+
+      - name: Build Android arm64
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          bun run tauri android build --target aarch64
+
+      - name: Sign APK64
+        run: |
+          echo "export PATH=\$PATH:\$ANDROID_HOME/build-tools" >> $GITHUB_ENV
+          chmod +x ./scripts/sign_apk.sh
+          ./scripts/sign_apk.sh
+          mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./ruci-gui.apk
+
+      - name: Upload Android APK64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ruci-gui.apk
+          asset_name: ruci-gui.apk
+          asset_content_type: application/vnd.android.package-archive
