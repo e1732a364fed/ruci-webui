@@ -566,6 +566,20 @@ const ControlPanel = ({}: ControlPanelProps) => {
               </Box>
             </Grid>
 
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                OpenAPI
+                <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary">
+                    <a href={apiUrl.replace("/api", "/swagger-ui")}>basic</a>
+                  </Typography>
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <a href={apiUrl.replace("/api", "/swagger-ui-ext")}>utils</a>
+                </Typography>
+              </Typography>
+            </Grid>
+
             {statusMessage && (
               <Grid item xs={12}>
                 <Alert severity={statusError ? "error" : "success"}>
