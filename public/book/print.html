@@ -1,0 +1,1446 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ruci_manual</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/pagetoc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> 欢迎</a></li><li class="chapter-item expanded "><a href="get_started.html"><strong aria-hidden="true">2.</strong> 入门</a></li><li class="chapter-item expanded "><a href="app/cmd.html"><strong aria-hidden="true">3.</strong> ruci-cmd程序</a></li><li class="chapter-item expanded "><a href="app/subscribe.html"><strong aria-hidden="true">4.</strong> 订阅</a></li><li class="chapter-item expanded "><a href="lua/lua.html"><strong aria-hidden="true">5.</strong> lua配置</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="lua/config_intro.html"><strong aria-hidden="true">5.1.</strong> Config入门</a></li><li class="chapter-item expanded "><a href="lua/map_config.html"><strong aria-hidden="true">5.2.</strong> MapConfig</a></li><li class="chapter-item expanded "><a href="lua/route_config.html"><strong aria-hidden="true">5.3.</strong> Route Config</a></li><li class="chapter-item expanded "><a href="lua/infinite.html"><strong aria-hidden="true">5.4.</strong> Infinite</a></li></ol></li><li class="chapter-item expanded "><a href="lua/user_defined_protocol.html"><strong aria-hidden="true">6.</strong> lua自定义协议</a></li><li class="chapter-item expanded "><a href="json.html"><strong aria-hidden="true">7.</strong> json配置</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">ruci_manual</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/e1732a364fed/ruci/" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <h1 id="欢迎使用ruci"><a class="header" href="#欢迎使用ruci">欢迎使用ruci!</a></h1>
+<p>本手册 是面向使用ruci 作为 代理的用户 而写的用户手册， 旨在让您快速上手。</p>
+<p>手册的侧重点 与 代码文档不同。</p>
+<p>代码文档(项目 doc文件夹中不在book 目录下的文件)是面向开发者的, 一般有一些 &quot;如何编译&quot; 的内容.</p>
+<p>而手册专注于帮助 通过 release 下载程序包的 用户 快速学会使用ruci.</p>
+<p>让我们开始吧！
+<a href="get_started.html">入门</a></p>
+<p>本手册基于 ruci v0.0.8 制作</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ruci-入门"><a class="header" href="#ruci-入门">ruci 入门</a></h1>
+<p>ruci 的可执行文件叫做 ruci-cmd, 客户端和服务端都是使用这同一个程序。</p>
+<h2 id="安装ruci"><a class="header" href="#安装ruci">安装ruci</a></h2>
+<p>从这里下载 ruci-cmd 的最新发布版：<a href="https://github.com/e1732a364fed/ruci/releases">Release</a></p>
+<p>发布版 以 .tar.xz 为后缀，是一个压缩包，包含 ruci-cmd 以及相关的 resource 文件夹。</p>
+<p>压缩包对于不同的平台有不同的后缀。</p>
+<h3 id="windows"><a class="header" href="#windows">windows</a></h3>
+<p>建议下载后缀为 <code>x86_64-pc-windows-msvc.tar.xz</code> 的版本</p>
+<p>下载后，可以用 7zip 来解压，先解压出一个 tar, 再解压一遍得到程序。(或双击用7zip 打开后，进入tar之后再将其内容拖拽出来)</p>
+<p>第一次运行时，windows 可能弹出提示，询问是否允许连接到网络，同意即可。</p>
+<h3 id="macos"><a class="header" href="#macos">macOS</a></h3>
+<p>apple silicon（m1,m2,m3,m4） 下载
+<code>aarch64-apple-darwin.tar.xz</code> </p>
+<p>老机型下载
+<code>x86_64-apple-darwin.tar.xz </code></p>
+<p>解压：</p>
+<pre><code>tar xf archive.tar.xz
+</code></pre>
+<p>第一次运行时，macOS 会提示您该程序不受信任，您可以到 设置-隐私与安全 中，许可本程序的使用。</p>
+<p>注：编译运行则不会出现此提示。</p>
+<h3 id="x64-linux"><a class="header" href="#x64-linux">x64 linux</a></h3>
+<p>建议 x64的 linux 用户下载 后缀为 <code>x86_64-unknown-linux-gnu.tar.xz</code> 的版本</p>
+<p>如果运行闪退，则可以下载 后缀为 <code>x86_64-unknown-linux-musl.tar.xz</code> 的版本</p>
+<p>解压：</p>
+<pre><code>tar xf archive.tar.xz
+chmod +x ruci-cmd
+</code></pre>
+<p>若报 xz: Cannot exec: No such file or directory，可运行下面命令(ubuntu)安装 xz, 安了就好了:</p>
+<pre><code class="language-sh">sudo apt install xz-utils
+</code></pre>
+<h3 id="安卓"><a class="header" href="#安卓">安卓</a></h3>
+<p>termux 用户可以下载 后缀为 <code>aarch64-linux-android.tar.xz</code> 的版本</p>
+<p>可以先在电脑上解压好，再传到手机中</p>
+<p>之后在 termux 中</p>
+<pre><code>chmod +x ruci-cmd
+</code></pre>
+<h2 id="开始使用"><a class="header" href="#开始使用">开始使用</a></h2>
+<p>在ruci-cmd 所在的文件夹中：</p>
+<p>windows下，打开 cmd 或 powershell, 运行：</p>
+<pre><code>.\ruci-cmd.exe
+</code></pre>
+<p>其它平台，进入终端，输入</p>
+<pre><code>./ruci-cmd
+</code></pre>
+<p>为了保持本文的简洁，下面命令行示例统一使用 linux 的格式。</p>
+<p>运行ruci-cmd后它会在相同目录下的 resource 文件夹 或 ruci_config 文件夹寻找 <code>local.lua</code> 文件，如果
+找到了，就会运行，否则就会退出。</p>
+<p>运行时，会同时在 ruci-cmd 的当前目录下生成一个 logs 文件夹，用于存放生成的日志文件。</p>
+<p>如果要指定配置文件运行，可以加 -c 参数：</p>
+<pre><code>./ruci-cmd -c remote.lua
+./ruci-cmd -c local.json
+</code></pre>
+<p>如果要了解编译等方面的细节，可参考 <a href="https://github.com/e1732a364fed/ruci/blob/tokio/crates/ruci-cmd/README.md">这里</a></p>
+<p>为了不让 resource 文件夹中的示例文件影响您的自定义配置，您可以把 resource 文件夹重命名为其它名称，
+然后建立一个 ruci_config 文件夹，将您的配置文件放在 ruci_config 文件夹中。</p>
+<p>resource 文件夹中的内容有助于参考使用，建议保留。</p>
+<p>调节日志等级为 debug:</p>
+<pre><code>./ruci-cmd -l debug
+</code></pre>
+<h1 id="ruci-gui"><a class="header" href="#ruci-gui">ruci-gui</a></h1>
+<p>另一种使用 ruci 的方式是使用 gui, 来自 <a href="https://github.com/e1732a364fed/ruci-webui/">ruci-webui</a> 项目，
+它使用 tauri 编译了 桌面和 安卓平台的 gui，内置了 ruci内核</p>
+<p>到 <a href="https://github.com/e1732a364fed/ruci-webui/releases/">https://github.com/e1732a364fed/ruci-webui/releases/</a> 下载最新的编译版本。</p>
+<p>启动该gui后，可在 Control Panel 中 点击 “检查服务器状态”，它会显示 <code>服务器状态: {&quot;status&quot;:&quot;running&quot;}</code>
+这表示 内核已经正在运行。然后 点击 “选择配置文件”，再点击 “启动引擎”，就可以运行 您的 ruci 配置了。</p>
+<p>ruci-gui 的 Node Editor 还提供了一种很方便的 “节点编辑器”，可以 以可视化的方式编辑您的配置文件。
+而 Control Panel 中又提供了一些方便的小工具。</p>
+<p>ruci-webui 项目的 release 分为 webui 和 gui 两种。gui为 tauri 生成的 桌面程序，而 webui 则为 一个 dist 压缩包，可用于在 ruci-cmd 中的 file-server中运行
+(api-server 运行后会自动运行 file-server 服务 dist 文件夹)</p>
+<h1 id="接下来"><a class="header" href="#接下来">接下来</a></h1>
+<ul>
+<li><a href="app/cmd.html">ruci-cmd程序</a></li>
+<li><a href="app/subscrible.html">订阅</a></li>
+<li><a href="lua/lua.html">lua配置</a></li>
+<li><a href="lua/route_config.html">路由配置</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><p>命令行参数 与 程序运行</p>
+<h1 id="综述"><a class="header" href="#综述">综述</a></h1>
+<p>我们 ruci 的可执行文件是 ruci-cmd.</p>
+<p>所使用的配置文件的格式 可以是 lua (<a href="app/./lua/lua.html">lua配置</a>), 也可以是 json 
+).</p>
+<p>lua配置更难写一些，但是更灵活一些。 json 配置更简单一些，但其功能则更少一些。</p>
+<h2 id="静态链动态链"><a class="header" href="#静态链动态链">静态链、动态链</a></h2>
+<p>ruci 中引入了 “静态链、动态链” 的概念。这两个概念在ruci中至关重要，因此有必要先对其 有一个基本了解。</p>
+<p>静态链就是传统的代理的配置方式，而 动态链 则是一种更高级的概念。</p>
+<p>json 配置和基本的 lua配置都是 静态链配置.</p>
+<p>而lua配置中还可以通过一些方式开启 动态链的配置。对于新手来说，先把静态链的写法学会就行了。</p>
+<h1 id="运行方式"><a class="header" href="#运行方式">运行方式</a></h1>
+<p>本地运行:</p>
+<pre><code>./ruci-cmd -c local.lua
+</code></pre>
+<p>或</p>
+<pre><code>./ruci-cmd -c local.json
+</code></pre>
+<p>服务器运行:</p>
+<pre><code>./ruci-cmd -c remote.lua
+</code></pre>
+<p>或</p>
+<pre><code>./ruci-cmd -c remote.json
+</code></pre>
+<p>macOS 版本要在 系统App：Settings - Privacy &amp; Security 里 allow 一下。
+或者运行 <code>xattr -c ruci-cmd</code></p>
+<p>ruci-cmd 会在 下面文件夹中 找 指定的 配置文件</p>
+<pre><code>&quot;./&quot;,
+&quot;ruci_config/&quot;,
+&quot;resource/&quot;,
+&quot;dev_res/&quot;
+</code></pre>
+<p>因此如果不想使用 默认打包的 resource 文件夹，可以将其改名为 resource_default, 
+然后 自己创建一个 ruci_config 文件夹，将自己的配置放在 ruci_config 中，这样
+就不会产生混淆</p>
+<p>另外，配置文件名称是可以自定义的，不一定要叫 local.lua 或 remote.lua, 这只是
+一种命名习惯而已。</p>
+<h1 id="日志"><a class="header" href="#日志">日志</a></h1>
+<p>ruci-cmd 运行时产生的日志会自动创建并放在 logs 文件夹中, daily rolling</p>
+<p>为了调整日志的等级，在运行参数中 有 两种选择：使用命令行参数 或者使用 环境变量</p>
+<h2 id="命令行参数法"><a class="header" href="#命令行参数法">命令行参数法</a></h2>
+<p>-l, --log-level &lt;LOG_LEVEL&gt;</p>
+<p>可为 ERROR, WARN, INFO , DEBUG, TRACE
+小写也可以。</p>
+<h2 id="环境变量法"><a class="header" href="#环境变量法">环境变量法</a></h2>
+<p>环境变量法比较高级：</p>
+<p>在命令的开头加上</p>
+<pre><code>RUST_LOG=none,ruci=debug 
+</code></pre>
+<p>如</p>
+<pre><code>RUST_LOG=none,ruci=debug ./ruci-cmd -c local.lua
+</code></pre>
+<p>如果是powershell就是加上</p>
+<pre><code>$Env:RUST_LOG=&quot;none,ruci=debug&quot;;
+</code></pre>
+<p>如</p>
+<pre><code>$Env:RUST_LOG=&quot;none,ruci=debug&quot;; .\ruci-cmd.exe -c local.lua
+</code></pre>
+<p>这么写 的效果是：过滤 log, 对其它依赖包的 日志通通不要，只留 ruci 包自己的日志</p>
+<h1 id="utils-工具包"><a class="header" href="#utils-工具包">utils 工具包</a></h1>
+<p>ruci-cmd 提供了一些很方便的命令，可以执行一些辅助功能。</p>
+<h2 id="生成自签名根证书"><a class="header" href="#生成自签名根证书">生成自签名根证书</a></h2>
+<pre><code>./ruci-cmd utils gen-cer localhost www.mytest.com
+</code></pre>
+<p>会生成 generated_crt_and_key.crt</p>
+<h2 id="下载外部依赖资源"><a class="header" href="#下载外部依赖资源">下载外部依赖资源</a></h2>
+<pre><code>./ruci-cmd utils mmdb
+
+./ruci-cmd utils wintun
+</code></pre>
+<h2 id="配置文件格式转换"><a class="header" href="#配置文件格式转换">配置文件格式转换：</a></h2>
+<p>ruci-cmd utils convert-format &lt;INPUT_FILE&gt; &lt;OUTPUT_FORMAT&gt;
+如
+ruci-cmd utils convert-format local.lua json</p>
+<p>(lua, json) 几种格式在静态链下是可以互相转换的</p>
+<p>转后就会生成 local.json. 如果同名文件存在，就会自动用一个新的名称，不会覆盖。</p>
+<p>而且也可以  转换为同格式 ，相当于把 注释删掉然后 标准化一下</p>
+<h2 id="简易文件服务器"><a class="header" href="#简易文件服务器">简易文件服务器</a></h2>
+<pre><code>./ruci-cmd utils serve-folder
+./ruci-cmd utils serve-folder 0.0.0.0:12345
+</code></pre>
+<p>serve-folder 命令 会将 ruci-cmd 当前工作目录下的 &quot;static&quot; 文件夹 作为 文件服务器的根路径。</p>
+<p>它不会对用户打印出 static 文件夹中的任何文件，而只有当访问 static 中的用户指定的子文件夹时，才会显示其子文件夹的内容。
+这样就保护了根路径的内容。</p>
+<p>这个文件夹名不可更改，这是为了防止错误地将私密文件暴露。</p>
+<p>如果不给出监听地址，会自动监听 &quot;0.0.0.0:18143&quot;。</p>
+<h3 id="示例链接"><a class="header" href="#示例链接">示例链接</a></h3>
+<p>查看目录
+http://0.0.0.0:18143/folder1</p>
+<p>下载
+http://0.0.0.0:18143/download/folder1/file1.zip</p>
+<h2 id="打包"><a class="header" href="#打包">打包</a></h2>
+<pre><code>./ruci-cmd utils pack folder1
+./ruci-cmd utils pack-z folder1
+</code></pre>
+<p>pack 和 pack-z 命令 可以对工作目录下的指定文件夹 进行打包。</p>
+<p>pack是打包为 tar 文件， pack-z 是在打包为 tar.zip 文件。</p>
+<p>它会计算 打包好的 tar 文件的 md5 hash, 并将 该 md5 作为 tar 文件的文件名。</p>
+<p>如果是 pack-z, 其依然使用 tar 的 md5 作为 文件名，而不是 zip 的 md5。</p>
+<h2 id="lua-命令行"><a class="header" href="#lua-命令行">lua 命令行</a></h2>
+<pre><code>./ruci-cmd utils repl
+</code></pre>
+<p>该命令可以启用一个 lua repl (read, execute, print, loop), 用户可以在里面执行一些lua代码。</p>
+<h1 id="高级用法"><a class="header" href="#高级用法">高级用法</a></h1>
+<p>lua配置使用 infinite:</p>
+<pre><code>./ruci-cmd -c local.lua --infinite
+</code></pre>
+<p>运行配置的同时 开启 api-server:</p>
+<pre><code>./ruci-cmd -c remote.lua -a 
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="订阅"><a class="header" href="#订阅">订阅</a></h1>
+<p>ruci 中使用一种非常简单的方法来实现订阅，分为三步：打包、服务文件（生成订阅url）、下载。</p>
+<h2 id="示例流程"><a class="header" href="#示例流程">示例流程</a></h2>
+<pre><code class="language-sh">./ruci-cmd utils pack-z resource
+mkdir static
+mv 83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip static/
+./ruci-cmd utils serve-folder
+./ruci-cmd -c http://0.0.0.0:18143/download/83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip --in-memory
+</code></pre>
+<h2 id="打包-1"><a class="header" href="#打包-1">打包</a></h2>
+<pre><code>./ruci-cmd utils pack-z resource
+</code></pre>
+<p>它会把 ruci-cmd 目录下的 resource 文件夹中的全部内容打包为一个 {md5}.tar.zip 文件。
+这个 zip文件里面只有一个文件，即 {md5}.tar， 而 {md5}.tar 里面则是 resource 文件夹中的所有文件内容（不包含resource 这个层级）</p>
+<p>其中 {md5} 是 {md5}.tar 这个文件的 md5 哈希值。</p>
+<h2 id="服务文件生成订阅url"><a class="header" href="#服务文件生成订阅url">服务文件（生成订阅url）</a></h2>
+<p>之后把 {md5}.tar.zip 文件移动到 ruci-cmd 所在目录的 static 文件夹下。若没有则创建一个。</p>
+<pre><code class="language-sh">mkdir static
+mv 83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip static/
+</code></pre>
+<p>然后运行 ruci-cmd 的文件服务器</p>
+<pre><code class="language-sh">./ruci-cmd utils serve-folder
+</code></pre>
+<p>这样，订阅链接就会自动为 
+http://0.0.0.0:18143/download/83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip</p>
+<p>注意，0.0.0.0 是本机地址，如果您要在公网，可以将ip换为 您的公网ip。</p>
+<p>ruci 不提供https、用户鉴权的机制，您可以通过一些反向代理的方式来提供安全性。</p>
+<h2 id="在客户端使用订阅链接"><a class="header" href="#在客户端使用订阅链接">在客户端使用订阅链接</a></h2>
+<p>正常使用配置文件时，是用的 <code>ruci-cmd -c local.lua</code>, 此时，只要把 -c 的参数改为对应的下载链接即可：</p>
+<pre><code class="language-sh">./ruci-cmd -c http://0.0.0.0:18143/download/83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip
+</code></pre>
+<p>该命令会下载该压缩包、保存到当前目录并使用。它会自动阅读包中的 local.lua 或 local.json 文件。</p>
+<p>如果不想把下载的包保存，则可以加 <code> --in-memory</code> 选项。</p>
+<p>如果已经保存了下载好的包，下一次使用时可以直接解压缩里面的内容使用，也可以直接用</p>
+<pre><code class="language-sh">./ruci-cmd -c 83c649c74b8a4c6ebc07a9a99ee350a0.tar.zip
+</code></pre>
+<p>或者</p>
+<pre><code class="language-sh">./ruci-cmd -c 83c649c74b8a4c6ebc07a9a99ee350a0.tar
+</code></pre>
+<p>注意，如果不解压缩，则不要修改 tar 或 tar.zip 的名字。因为名字要作为 md5 由 ruci-cmd 检查其包内容是否一致。
+如果 包的实际内容的 md5 与 名字不一致，则 ruci-cmd 会拒绝运行。</p>
+<h1 id="接下来-1"><a class="header" href="#接下来-1">接下来</a></h1>
+<ul>
+<li><a href="app/../lua/lua.html">lua配置</a></li>
+<li><a href="app/lua/route_config.html">路由配置</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="lua配置"><a class="header" href="#lua配置">lua配置</a></h1>
+<p>ruci 配置文件的基本命名逻辑是，</p>
+<p>local.lua 代表 在客户端 的配置文件</p>
+<p>remote.lua 代表在 服务端 的配置文件</p>
+<p>入门用法如下, 使用 Config 变量:</p>
+<pre><code class="language-lua">
+Config = {
+    inbounds = {},
+    outbounds = {},
+
+}
+</code></pre>
+<p>中级用法中，Config 中还有 fallback_route, tag_route, rule_route 这几项, 包在 routes 中：</p>
+<pre><code class="language-lua">
+Config = {
+    inbounds = {},
+    outbounds = {},
+    routes = {
+        fallback_route = {},
+        tag_route = {},
+    }
+    
+}
+</code></pre>
+<p>高级用法中，还有<a href="lua/./infinite.html">Infinite 配置</a> 。</p>
+<p>先学 简单的 <a href="lua/./config_intro.html">Config 入门</a> 吧。</p>
+<h1 id="关于-lua语法"><a class="header" href="#关于-lua语法">关于 lua语法</a></h1>
+<p>在lua中，大括号 <code>{}</code> 被叫做 table, 它即可以当数组用也可以当&quot;字典&quot;用。</p>
+<p>行注释以 <code>--</code> 开始，块注释如下：</p>
+<pre><code class="language-lua">--[[
+
+]]
+</code></pre>
+<p>如写 <code>x = 1</code>, 则 x会默认成为 全局变量，这不太好。因此一般都写成
+<code>local x = 1</code></p>
+<p>字符串就是 <code>&quot;abc&quot;</code>, 块级字符串为:</p>
+<pre><code class="language-lua">a = [[
+    abcd
+    abcd
+]]
+</code></pre>
+<p>函数是 :</p>
+<pre><code class="language-lua">local function(c)
+    return 1
+end
+</code></pre>
+<h1 id="接下来-2"><a class="header" href="#接下来-2">接下来</a></h1>
+<ul>
+<li><a href="lua/route_config.html">路由配置</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="config入门"><a class="header" href="#config入门">Config入门</a></h1>
+<p>一般情况下，每个 配置文件里都要写一个 Config 块, 程序 读取解析这个 Config 后就运行。</p>
+<p>让我们创建一个 <code>local.lua</code> 文件，内容如下:</p>
+<pre><code class="language-lua">
+Config = {
+    inbounds = {},
+    outbounds = {},
+
+}
+</code></pre>
+<p>inbounds 是指 入站, 即 在这里设置 本地监听 的端口</p>
+<p>outbounds 是指 出站, 即 在这里设置 远程服务器 的地址</p>
+<p>因为可能有多个 入站和出站，所以 inbounds 和 outbounds 都是 列表，
+也就是说，下面的示例分别有两个入站 和 三个出站</p>
+<pre><code class="language-lua">
+Config = {
+    inbounds = { {}, {}}
+    outbounds = { {}, {}, {}}
+}
+
+</code></pre>
+<p>直接看 <a href="lua/config_intro.html#%E6%9C%80%E7%AE%80%E9%85%8D%E7%BD%AE">最简配置</a>, 还是一步步学起？你说的算~</p>
+<h1 id="inboundsoutbounds"><a class="header" href="#inboundsoutbounds">inbounds/outbounds</a></h1>
+<p>inbounds/outbounds 是 <a href="lua/config_intro.html#inboundoutbound">inbound/outbound</a> 的列表:</p>
+<pre><code>inbounds = { inbound1_tag = {} , inbound2_tag = {}, ... }
+</code></pre>
+<h2 id="inboundoutbound"><a class="header" href="#inboundoutbound">inbound/outbound</a></h2>
+<p>每个 inbound/outbound 都由 一个 <a href="lua/config_intro.html#chain">chain</a> 和一个 tag 组成:</p>
+<p>如下面 tag 为 listen1</p>
+<pre><code class="language-lua">{
+    listen1 = {},
+}
+</code></pre>
+<h2 id="chain"><a class="header" href="#chain">chain</a></h2>
+<p>每个 chain 都是一个 列表:</p>
+<pre><code>{ {}, {}, {}, ..}
+</code></pre>
+<p>它是 <code>MapConfig</code> 的列表.</p>
+<p>如果在 inbound 中，则它是 <code>InMapConfig</code> 的列表, 
+如果在 outbound 中，则它是 <code>OutMapConfig</code> 的列表</p>
+<p>每一种 <code>MapConfig</code> 都是一个 由 大括号 括起来的 table</p>
+<p>我们先学简单的几个 Config</p>
+<h2 id="inmapconfig初探"><a class="header" href="#inmapconfig初探">InMapConfig初探</a></h2>
+<p>先学两种 InMapConfig，Listener 和 Sock5Http</p>
+<h3 id="listener"><a class="header" href="#listener">Listener</a></h3>
+<p>下面配置 监听 本地 tcp 端口 10800:</p>
+<pre><code>{
+    type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+}
+</code></pre>
+<h3 id="sock5http"><a class="header" href="#sock5http">Sock5Http</a></h3>
+<p>Sock5Http 可读取 socks5 协议 和 http代理 协议</p>
+<pre><code>{
+    type = &quot;Socks5Http&quot;
+}
+</code></pre>
+<h3 id="合体"><a class="header" href="#合体">合体</a></h3>
+<p>知道了 Listener 和 Sock5Http 这两个 InMapConfig 后，我们把它
+合起来放到一个 chain 中：</p>
+<pre><code class="language-lua">{
+    {
+        type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+    },
+    {
+        type = &quot;Socks5Http&quot;
+    }
+}
+</code></pre>
+<p>再把它包起来变成一个 inbound ：</p>
+<pre><code class="language-lua">listen1 = {
+    {
+        type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+    },
+    {
+        type = &quot;Socks5Http&quot;
+    }
+}
+</code></pre>
+<p>再把它放入 Config 的 inbounds 中, 作为 目前 inbounds 唯一的 inbound：</p>
+<pre><code class="language-lua">Config = {
+    inbounds = {
+        listen1 = {
+            {
+                type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+            },
+            {
+                type = &quot;Socks5Http&quot;
+            }
+        }
+    },
+
+}
+</code></pre>
+<p>这样 我们第一个 inbounds 配置就做好了！</p>
+<h2 id="outmapconfig初探"><a class="header" href="#outmapconfig初探">OutMapConfig初探</a></h2>
+<p>先学 最简单的 <code>OutMapConfig</code> Direct:</p>
+<h3 id="direct"><a class="header" href="#direct">Direct</a></h3>
+<p>Direct 是最简单的 OutMap! 它就是直连：</p>
+<pre><code>{ type = &quot;Direct&quot; }
+</code></pre>
+<h3 id="合体-1"><a class="header" href="#合体-1">合体</a></h3>
+<p>它 Direct 块 放入 chain 中：</p>
+<pre><code class="language-lua">{ type = &quot;Direct&quot; },
+</code></pre>
+<p>再把它放入 Config 的 outbounds 中：</p>
+<pre><code class="language-lua">Config = {
+    outbounds = {
+        direct =  {
+            { type = &quot;Direct&quot; },
+        }
+    },
+
+}
+</code></pre>
+<p>再和 上面 inbounds 结合起来，第一个能用的 lua配置就做好了：</p>
+<pre><code class="language-lua">Config = {
+    inbounds = {
+        listen1 = {
+            {
+                type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+            },
+            {
+                type = &quot;Socks5Http&quot;
+            }
+        }
+    },
+    outbounds = {
+        direct =  {
+            { type = &quot;Direct&quot; },
+        }
+    },
+}
+</code></pre>
+<h1 id="使用-lua-变量"><a class="header" href="#使用-lua-变量">使用 lua 变量</a></h1>
+<p>上面写法是不是太长了？不要急！我们使用lua不是为了让配置变复杂，而是让它变简单，方法就是用变量替换！</p>
+<p>我们把每个有意义的子块都给个 <code>变量名</code>：</p>
+<pre><code class="language-lua">local direct_map = { type = &quot;Direct&quot; }
+local listener = {  type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;  }
+local sock5http = { type = &quot;Socks5Http&quot; }
+
+</code></pre>
+<p>（local 的用法不在此解释，照抄就行）</p>
+<p>如此，整个 配置就变成了</p>
+<pre><code class="language-lua">
+local direct_map = { type = &quot;Direct&quot; }
+local listener = {  type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;  }
+local sock5http = { type = &quot;Socks5Http&quot; }
+
+Config = {
+    inbounds = {
+        listen1 = { listener, sock5http  }
+    },
+    outbounds = {  direct =  {  direct_map,  }  },
+}
+</code></pre>
+<h2 id="最简配置"><a class="header" href="#最简配置">最简配置</a></h2>
+<p>再替换一次：</p>
+<pre><code class="language-lua">local direct_map = { type = &quot;Direct&quot; }
+local listener = {  type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;  }
+local sock5http = { type = &quot;Socks5Http&quot; }
+
+local listen_inbound = { listen1 = { listener, sock5http } }
+local direct_outbound = { direct =  { direct_map, } }
+
+Config = {
+    inbounds = { listen_inbound },
+    outbounds = { direct_outbound },
+}
+</code></pre>
+<p>怎么样，是不是一下子就变得 清晰起来了？爽！先来个 high-five 吧！</p>
+<p>配置您电脑的 系统代理 为 socks5或 http, 指向 <code>127.0.0.1:10800</code>， </p>
+<p>然后运行</p>
+<pre><code>./ruci_cmd -c local.lua
+</code></pre>
+<p>windows:</p>
+<pre><code>ruci_cmd.exe -c local.lua
+</code></pre>
+<p>测试成功！</p>
+<p>下一步，学习 <a href="lua/map_config.html">各个 <code>MapConfig</code> 的写法 </a>
+或者直接开始学 <a href="lua/route_config.html">各个 route 的写法</a>？</p>
+<div style="break-before: page; page-break-before: always;"></div><p>开发相关：参考 rucimp/src/modes/chain/config/mod.rs</p>
+<p>开发相关：因为 代码实现方式不同，有些功能相近的 Map的Config是独立的</p>
+<h1 id="说明"><a class="header" href="#说明">说明</a></h1>
+<p>在 Map说明的 首部标有 in, out 或 in/out 字样，表明可用于 InMapConfig 还是 OutMapConfig</p>
+<p>配置的基本写法为 <code>{type = &quot;Name&quot;}</code>，内部还可能有其它项。</p>
+<p>没有任何示例的Map 意为着其写法仅为 <code>{type = &quot;Name&quot;}</code>，如 <code>{ type = &quot;Echo&quot;}</code> , <code>{type = &quot;Blackhole&quot;}</code>,  <code>{type = &quot;Direct&quot;}</code></p>
+<p>标有 <code> --optional</code> 的项为可选项。</p>
+<h2 id="_addr-的写法"><a class="header" href="#_addr-的写法"><code>_addr</code> 的写法</a></h2>
+<p>一些项，如 bind_addr，dial_addr, listen_addr, fixed_target_addr 等，其写法都是相同的。如下每一行都是合法的示例</p>
+<pre><code>fake.com:80
+[::1]:30800
+unix://file1
+udp://127.0.0.1:20800
+tcp://0.0.0.0:80
+ip://10.0.0.1:24#utun321
+</code></pre>
+<p><code>{scheme}://</code>没给出时，默认使用 tcp. unix 表示 unix domain socket</p>
+<p>方括号括起的表示 ipv6</p>
+<p>ip 示例中的 24 表示 子网掩码的CIDR表示， utun321 为指定要创建的 tun网卡 名称</p>
+<h1 id="入口出口-map"><a class="header" href="#入口出口-map">入口、出口 Map</a></h1>
+<h2 id="blackhole"><a class="header" href="#blackhole">Blackhole</a></h2>
+<p>out</p>
+<h2 id="direct-1"><a class="header" href="#direct-1">Direct</a></h2>
+<p>out</p>
+<pre><code class="language-lua">type = &quot;Direct&quot;
+</code></pre>
+<p>可选项为 dns_client </p>
+<pre><code class="language-lua">{
+    type = &quot;Direct&quot;,
+    dns_client = {
+        --...
+    }--optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#dnsclient">DnsClient</a></p>
+<h3 id="optdirect"><a class="header" href="#optdirect">OptDirect</a></h3>
+<p>in</p>
+<p>OptDirect 的出现是 为了给 Direct 添加 sockopt 选项。使用 tproxy 要用该Map</p>
+<pre><code class="language-lua">{
+    type = &quot;OptDirect&quot;,
+    sockopt= {
+        --...
+    },
+    more_num_of_files= false, -- 可选
+    dns_client = {}, -- 可选
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#sockopt">SockOpt</a></p>
+<p>见<a href="lua/map_config.html#dnsclient">DnsClient</a></p>
+<p>more_num_of_files 为 true时，在 linux 上，程序将自动调整 系统设置,
+防止 出现 num_of_files 不够的问题 ( 在 tproxy 等情况下尤为严重)</p>
+<h2 id="binddialer"><a class="header" href="#binddialer">BindDialer</a></h2>
+<p>in</p>
+<p>BindDialer 是 一个 既可以 Bind 又可以 Dial 的配置</p>
+<p>Bind 用于 udp 和 ip, dial 则用于 udp,tcp,uds(unix domain socket)</p>
+<p>BindDialer 中所有项都是可选的，但 bind_addr 或 dial_addr 中至少有一个要设置</p>
+<pre><code>对于 ip, bind_addr 须提供, 否则将报错
+
+对于 tcp/udp, 如果 bind_addr 不提供, 将采用 随机端口
+
+对于 uds, bind_addr 无意义
+
+对于 ip, dial_addr 无意义
+
+对于 tcp/uds, dial_addr 须提供，否则将报错
+</code></pre>
+<pre><code class="language-lua">{
+    type = &quot;BindDialer&quot;,
+
+    bind_addr = &quot;&quot;,
+    dial_addr = &quot;&quot;,
+
+    dns_client= {..} --optional
+
+    in_auto_route= {..},  --optional
+
+    out_auto_route = {..},  --optional
+
+    ext= {..}, --optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#dnsclient">DnsClient</a></p>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<p>in_auto_route 用于 tun</p>
+<pre><code class="language-lua"> in_auto_route = {
+    tun_dev_name = &quot;utun321&quot;,
+    tun_gateway = &quot;10.0.0.1&quot;,
+    router_ip = &quot;192.168.0.1&quot;,
+    original_dev_name = &quot;enp0s1&quot;, -- windows/macos 可不填 original_dev_name, linux 要填 original_dev_name
+    --direct_list = { &quot;192.168.0.204&quot; }, -- 服务端的ip要直连
+    dns_list = { &quot;114.114.114.114&quot; }
+}
+
+</code></pre>
+<p>out_auto_route 只用于 ip转发 (从本地的tun 转发到 服务器上的 tun)</p>
+<pre><code class="language-lua">out_auto_route = {
+    tun_dev_name = &quot;utun321&quot;,
+    original_dev_name = &quot;enp0s1&quot;, --wlp3s0
+    router_ip = &quot;192.168.0.1&quot;,
+}
+</code></pre>
+<p>ip 拨号是建立一个虚拟网卡，一般为 tun. 这个一般可以用于配合 tcp/ip stack (smoltcp/lwip) 进行全局路由使用，详情
+见 local.lua 中的对应示例，以及 <a href="https://github.com/e1732a364fed/ruci/blob/tokio/doc/notes.md#tun%E6%A8%A1%E5%BC%8F%E7%9A%84%E4%B8%80%E4%BA%9B%E5%AE%9E%E6%B5%8B%E4%BF%A1%E6%81%AF">这里</a></p>
+<h3 id="optdialer"><a class="header" href="#optdialer">OptDialer</a></h3>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;OptDialer&quot;,
+    dial_addr= &quot;&quot;,
+    sockopt= {}, --optional
+    dns_client = {}, --optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#dnsclient">DnsClient</a></p>
+<p>见<a href="lua/map_config.html#sockopt">SockOpt</a></p>
+<h2 id="listener-1"><a class="header" href="#listener-1">Listener</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;Listener&quot;,
+    listen_addr =&quot;&quot;,
+    ext={},--optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<h2 id="tcpoptlistener"><a class="header" href="#tcpoptlistener">TcpOptListener</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;TcpOptListener&quot;,
+    listen_addr =&quot;&quot;,
+    sockopt={},
+    ext={},--optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#sockopt">SockOpt</a></p>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<h2 id="stdio"><a class="header" href="#stdio">Stdio</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{
+    type = &quot;Stdio&quot;,
+    write_mode = &quot;Bytes&quot;, --optional
+    ext={},--optional
+}
+</code></pre>
+<p>默认的 write_mode 为 <code>UTF8</code>, 可以用 <code>Bytes</code> 模式来观察16进制数据</p>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<h2 id="fileio"><a class="header" href="#fileio">Fileio</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{
+    type = &quot;Fileio&quot;,
+    i=&quot;&quot;,
+    o=&quot;&quot;,
+    sleep_interval=1, --optional, 正整数
+    bytes_per_turn=100, --optional, 正整数
+    ext={}, --optional
+}
+</code></pre>
+<p>i 表示 输入文件名，o表示输出文件名。</p>
+<p>i为自己预先定义好的文件，o则是一个给出的文件名，其内容只有通讯后才知道。</p>
+<p>sleep_interval 和 bytes_per_turn 两项配置用于设置发送信息的速率。</p>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<h2 id="tproxy"><a class="header" href="#tproxy">Tproxy</a></h2>
+<p>in</p>
+<p>linux only</p>
+<p>tproxy 的配置要复杂一些，要分 tcp 和 udp 两部分配置，自动路由的配置则是在 TproxyTcpResolver 中设置的。</p>
+<pre><code class="language-lua">local tproxy_tcp_listen = {
+    type = &quot;TcpOptListener&quot;,
+    listen_addr = &quot;0.0.0.0:12345&quot;,
+    sockopt = {
+        tproxy = true,
+    }
+}
+
+local tproxy_listen_tcp_chain = {
+    tproxy_tcp_listen, {
+        type = &quot;TproxyTcpResolver&quot;,
+        port = 12345,
+        --auto_route_tcp = true, -- only set route for tcp
+        auto_route = true,         -- auto_route will set route for both tcp and udp at the appointed port
+
+        route_ipv6 = true,         -- 如果为true, 则  也会 对 ipv6 网段执行 自动路由
+
+        proxy_local_udp_53 = true, -- 如果为true, 则 udp 53 端口不会直连, 而是会流经 tproxy
+
+        -- local_net4 = &quot;192.168.0.0/16&quot; -- 直连 ipv4 局域网段 不给出时, 默认即为 192.168.0.0/16
+        
+    }
+}
+
+
+local tproxy_udp_listen = {
+    type = &quot;TproxyUdpListener&quot;,
+    listen_addr = &quot;udp://0.0.0.0:12345&quot;,
+    sockopt = {
+        tproxy = true,
+    }
+    
+}
+
+local tproxy_listen_inbounds = { 
+    listen_tproxy_tcp = tproxy_listen_tcp_chain,
+    listen_tproxy_udp = { tproxy_udp_listen },
+}
+
+</code></pre>
+<h3 id="tproxyudplistener"><a class="header" href="#tproxyudplistener">TproxyUdpListener</a></h3>
+<pre><code class="language-lua">{
+    type = &quot;TproxyUdpListener&quot;,
+    listen_addr=&quot;&quot;,
+    sockopt={},
+    ext={}, --optional
+}
+</code></pre>
+<p>见<a href="lua/map_config.html#sockopt">SockOpt</a></p>
+<p>见<a href="lua/map_config.html#ext">Ext</a></p>
+<h3 id="tproxytcpresolver"><a class="header" href="#tproxytcpresolver">TproxyTcpResolver</a></h3>
+<p>rucimp/src/map/tproxy/route/mod.rs</p>
+<pre><code class="language-lua">{
+    type = &quot;TproxyTcpResolver&quot;,
+     -- tproxy 监听的端口, 默认为 12345
+    port=12345, --  正整数
+    route_ipv6= false,
+    proxy_local_udp_53=false,
+
+    --局域网段, 默认为 192.168.0.0/16
+    local_net4 = &quot;192.168.0.0/16&quot;,
+    auto_route = true,
+    auto_route_tcp=false,
+}
+</code></pre>
+<p>所有项都是可选的</p>
+<p>auto_route 为 true 时， 若 auto_route_tcp 也为 true, 则 自动路由过程 只会为 tcp 设置路由,
+udp 将不被路由到tproxy中.</p>
+<h2 id="stacklwip"><a class="header" href="#stacklwip">StackLwip</a></h2>
+<p>in</p>
+<h2 id=""><a class="header" href="#"></a></h2>
+<h1 id="网络协议-map"><a class="header" href="#网络协议-map">网络协议 Map</a></h1>
+<p>in/out</p>
+<h2 id="简单代理协议-socks5httpsocks5http"><a class="header" href="#简单代理协议-socks5httpsocks5http">简单代理协议 Socks5,Http,Socks5Http</a></h2>
+<pre><code class="language-lua">type = &quot;Socks5Http&quot;
+type = &quot;Socks5&quot;
+type = &quot;Http&quot;
+</code></pre>
+<p>可选用户密码组合, 内容均为可选</p>
+<pre><code class="language-lua">{
+    type = &quot;Socks5&quot;, -- Http
+    userpass: &quot;username1 password1&quot;,
+    more: { &quot;username2 password2&quot;, &quot;username3 password3&quot;},
+}
+</code></pre>
+<p>字符串中 按whitespace 分割</p>
+<h2 id="trojan"><a class="header" href="#trojan">Trojan</a></h2>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;Trojan&quot;, 
+    password: &quot;password1&quot;,
+    more: { &quot;password2&quot;, &quot;password3&quot;},
+}
+</code></pre>
+<p>同上。password 以明文书写。</p>
+<p>out:</p>
+<pre><code class="language-lua"> { type = &quot;Trojan&quot;, password = &quot;mypassword&quot; }
+</code></pre>
+<h2 id="tls"><a class="header" href="#tls">TLS</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;TLS&quot;, 
+    cert=&quot;c.crt&quot;,
+    key=&quot;k.key&quot;,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},--optional
+}
+</code></pre>
+<p>out:</p>
+<pre><code class="language-lua">{
+    type = &quot;TLS&quot;, 
+    host=&quot;www.myhost.com&quot;,
+    insecure=false,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},--optional
+}
+</code></pre>
+<p>如果任意一方的alpn 没给出, 则连接都通过；如果两方 alpn 都给出, 则只有匹配了才通过</p>
+<h2 id="nativetls"><a class="header" href="#nativetls">NativeTLS</a></h2>
+<p>同上</p>
+<p>NativeTLS 使用 系统自己的 tls栈，这样就没有 rust 特征了。</p>
+<h2 id="http2"><a class="header" href="#http2">http2</a></h2>
+<p>服务端用 H2, 客户端用 H2Single 或 H2Mux，一般用 H2Mux 以使用 多路复用</p>
+<p>grpc 也是在 http2 配置中设置</p>
+<h3 id="h2"><a class="header" href="#h2">H2</a></h3>
+<p>目前 h2 的三种Map 的 Config 格式 是一样的</p>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;H2&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+}
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<h3 id="h2single"><a class="header" href="#h2single">H2Single</a></h3>
+<p>out</p>
+<pre><code class="language-lua">{
+    type = &quot;H2Single&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+},
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<h3 id="h2mux"><a class="header" href="#h2mux">H2Mux</a></h3>
+<p>out</p>
+<pre><code class="language-lua">{
+    type = &quot;H2Mux&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+},
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<h2 id="websocket"><a class="header" href="#websocket">WebSocket</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;WebSocket&quot;, 
+    http_config = {
+       --...
+    } --optional
+}
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<p>out:</p>
+<pre><code class="language-lua">{
+    --... optional
+}
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<h2 id="quic"><a class="header" href="#quic">Quic</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<p>quic 的 监听端 是直接接管 udp 层的, listen_addr 在这里指定, 而不额外用 Listener</p>
+<pre><code class="language-lua">{
+    type = &quot;Quic&quot;, 
+    key=&quot;&quot;,
+    cert=&quot;&quot;,
+    listen_addr=&quot;&quot;,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},
+}
+</code></pre>
+<p>out:</p>
+<pre><code class="language-lua"> {
+    type = &quot;Quic&quot;, 
+    server_addr=&quot;&quot;,
+    server_name=&quot;www.mytest.com&quot;,
+    cert=&quot;&quot;,--optional
+    alpn = { &quot;h2&quot;, &quot;h3&quot;}, --要明确指定 alpn
+    insecure=true,--optional
+}
+</code></pre>
+<p>须给出 server_name (域名),
+且 若 insecure 为 false, 须为 证书中所写的 CN 或 Subject Alternative Name;
+ruci 提供的 test2.crt中的 Subject Alternative Name 为 www.mytest.com 和 localhost,</p>
+<p>cert：可给出 服务端的 证书, 这样就算 insecure = false 也通过验证
+证书须为 真证书, 或真fullchain 证书, 或自签的根证书</p>
+<h2 id="spe1-steganography-protocol-exmaple1"><a class="header" href="#spe1-steganography-protocol-exmaple1">SPE1: Steganography Protocol Exmaple1</a></h2>
+<p>隐写示例协议1</p>
+<pre><code class="language-lua">{ 
+    type = &quot;SPE1&quot;, 
+    qa = { { &quot;q1&quot;, &quot;a1&quot; }, { &quot;q2&quot;, &quot;a2&quot; } } 
+}
+</code></pre>
+<p>qa 中要为 2的偶数次幂个 问答对，问答的内容任意填。但是内容越真实，隐写效果越好。</p>
+<p>如果不给出qa，则协议会使用自己生成的问答对。</p>
+<pre><code class="language-lua"> { type = &quot;SPE1&quot;}
+</code></pre>
+<h2 id="lua-lua自定义协议"><a class="header" href="#lua-lua自定义协议">Lua: lua自定义协议</a></h2>
+<pre><code class="language-lua">{ type = &quot;Lua&quot;, file_name = &quot;lua_protocol_e1.lua&quot;, handshake_function = &quot;Handshake2&quot; }
+</code></pre>
+<p>lua自定义协议 的写法是高级用法，见  <a href="lua/user_defined_protocol.html">lua自定义协议</a></p>
+<h1 id="辅助-map"><a class="header" href="#辅助-map">辅助 Map</a></h1>
+<h2 id="echo"><a class="header" href="#echo">Echo</a></h2>
+<p>in/out</p>
+<h2 id="adder"><a class="header" href="#adder">Adder</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{type = &quot;Adder&quot;, value=3}
+</code></pre>
+<p>给 输出 的信息 每字节都加 给定的数值。比如 输入abc, value=1, 则输出为 bcd</p>
+<h2 id="counter"><a class="header" href="#counter">Counter</a></h2>
+<p>in/out</p>
+<h2 id="httpfilter"><a class="header" href="#httpfilter">HttpFilter</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;HttpFilter&quot;,
+    --...
+}
+</code></pre>
+<p>见 <a href="lua/map_config.html#httpcommonconfig">HttpCommonConfig</a></p>
+<h1 id="子块"><a class="header" href="#子块">子块</a></h1>
+<h2 id="dnsclient"><a class="header" href="#dnsclient">DnsClient</a></h2>
+<pre><code class="language-lua">dns_client = {
+    dns_server_list = { { &quot;127.0.0.1:20800&quot;, &quot;udp&quot; } }, -- 8.8.8.8:53
+    ip_strategy = &quot;Ipv4Only&quot;, --optional
+    static_pairs = {
+        ['www.baidu.com'] = &quot;103.235.47.188&quot;
+    } --optional
+}
+
+</code></pre>
+<p>Direct,OptDirect,BindDialer,OptDialer 都可加此块。</p>
+<p>ip_strategy 的可能的值：</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub enum LookupIpStrategy {
+    Ipv4Only,
+    Ipv6Only,
+    Ipv4AndIpv6,
+    Ipv6thenIpv4,
+    Ipv4thenIpv6,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>不给出时，默认为 Ipv4thenIpv6</p>
+<h2 id="sockopt"><a class="header" href="#sockopt">SockOpt</a></h2>
+<pre><code class="language-lua">sockopt = {
+    tproxy = true,
+    so_mark = 255,
+    bind_to_device = &quot;en0&quot;,
+}
+</code></pre>
+<p>三项都是可选的</p>
+<p>tproxy 为 true时表示 开启 tproxy 功能</p>
+<p>so_mark 从0 到 255.</p>
+<p>bind_to_device 的一些可能的值：</p>
+<p>-- enp0s1(linux 的一般情况)
+-- en0  (macos 的情况)
+-- WLAN( windows, 用wifi联网的情况)</p>
+<h2 id="ext"><a class="header" href="#ext">Ext</a></h2>
+<p>Listener,TcpOptListener, BindDialer, Stdio, Fileio 都能如此配置 ext</p>
+<pre><code class="language-lua">ext = {
+    fixed_target_addr = &quot;udp://8.8.8.8:53&quot;,
+    pre_defined_early_data = &quot;abcde&quot;
+}
+</code></pre>
+<p>ext 是 extension 的缩写, 是指定一些额外配置, 内部的项都是可选的, ext 本身也是可选的</p>
+<p>fixed_target_addr 一旦设置，意味着 该Map的实际的 代理目标 是指定的值。</p>
+<p>常见用例是转发 udp 流量，比如为自己的 出口设置不同的 dns：</p>
+<p>listen 一个 本地的 udp 端口 (a), 指定 ext.fixed_target_addr (b), 其为实际想要的dns服务器
+然后将 这个listen 所在的链  route 到一个 与远程服务器连接 的 链1上。</p>
+<p>之后在自己的 Direct 的 dns_client 中的 dns_server_list 中添加 a, 这样就可以
+将所有direct 中用到的dns解析都实际 通过 链1 发送到 服务端，服务端 再将 dns信息发到 fixed_target_addr</p>
+<p>这就是 一些代理中的 &quot;dokodemo&quot; 的逻辑.</p>
+<h2 id="httpcommonconfig"><a class="header" href="#httpcommonconfig">httpCommonConfig</a></h2>
+<pre><code class="language-lua"> {
+    authority = &quot;www.myhost.com&quot;,
+    path = &quot;/ruci_jiandan&quot;,
+
+    method = &quot;GET&quot;,--optional
+    scheme = &quot;https&quot;,--optional
+    headers= { [&quot;header1&quot;] = &quot;value1&quot;, [&quot;header2&quot;] = &quot;value2&quot;, },--optional
+}
+</code></pre>
+<h1 id="接下来-3"><a class="header" href="#接下来-3">接下来</a></h1>
+<p>现在再读 dev_res/local.lua 就会轻松很多了。</p>
+<p>学点难的？
+<a href="lua/infinite.html">Infinite</a></p>
+<div style="break-before: page; page-break-before: always;"></div><p>现在我们学习 Config 中几种 route 块的写法:</p>
+<pre><code class="language-lua">
+routes = {
+    tag_route = {},
+    fallback_route = {},
+    clash_rules = &quot;the_clash_rules.yaml&quot;,
+    geosite = &quot;mygeosite_file_name.mmdb&quot;,
+    geosite_gfw = {}
+}
+</code></pre>
+<p>所有 route 都会用到 chain 的 <code>tag</code>
+所以我们要求每一条inbound 都要有一个 tag, 每一个 inbound 中的 chain 都要有至少一个 map</p>
+<h1 id="tag_route"><a class="header" href="#tag_route">tag_route</a></h1>
+<pre><code class="language-lua">    tag_route = { { &quot;l1&quot;, &quot;d1&quot; }, { &quot;l2&quot;, &quot;d2&quot; }, { &quot;l3&quot;, &quot;d2&quot; } },
+</code></pre>
+<p>tag_route 是一个 字符串对 的列表。对中前者为 inbound 的 tag, 后者为 outbound 的 tag。</p>
+<p>这是一种固定的 路由模式，只要来自 l1 的 都会被发到 d1.</p>
+<h1 id="fallback_route"><a class="header" href="#fallback_route">fallback_route</a></h1>
+<p>首先学一下什么是 fallback. </p>
+<p>在一个 inbound的 chain 中，有序地排列着多个 InMapConfig, 即它们代表着多个 Map,
+分别记为 map1, map2. 假设 map1 通过了，但 map2 的协议 逻辑检查失败，即 map2
+检查数据，发现和 map2 对应的 协议所定义的 特征不一致，那么此时 整个 chain 就此中断。</p>
+<p>如果就这样，一般的情况就是 在 log 中记录一下此次 异常情况, 然后继续 监听 其它请求。</p>
+<p>但是，有时，map2 错了，我们依然认为 它是一个有效的 map1, 想要 将它转发到一个新的
+outbound 上，此时就用到了 fallback_route. 这整个行为就叫 fallback.</p>
+<p>没错。这个就是 trojan 协议的 精髓。</p>
+<pre><code class="language-lua">    fallback_route = { { &quot;listen1&quot;, &quot;fallback_dial1&quot; } }
+
+</code></pre>
+<p>fallback_route 是一个 字符串对 的列表。上面示例就是表示 inbound chain &quot;listen1&quot; 里失败的地方将被转发到 
+outbound chain &quot;fallback_dial1&quot; 中。listen1 和 fallback_dial1 是它们的 tag.</p>
+<h1 id="clash_rules"><a class="header" href="#clash_rules">clash_rules</a></h1>
+<p>0.0.8开始，ruci 支持了clash 的分流规则的使用。clash 是一个知名的app, 它的规则被用得很多</p>
+<p>一般直接写为 clash_rules = &quot;myfile.yaml&quot;</p>
+<p>然后在 myfile.yaml 中，按 clash 配置文件中的 rules 项进行书写，如写成：</p>
+<pre><code class="language-yaml">rules:
+  - DOMAIN-SUFFIX,ip6-localhost,Direct
+  - DOMAIN-SUFFIX,ip6-loopback,Direct
+  - DOMAIN-SUFFIX,lan,Direct
+  - DOMAIN-SUFFIX,local,Direct
+  - DOMAIN-SUFFIX,localhost,Direct
+  - DOMAIN-KEYWORD,baidu,Reject
+</code></pre>
+<p>就行了</p>
+<p>ruci 支持所有 clash 中定义的 规则，而且有算法加速支持，匹配得很快！</p>
+<p>您还可以直接把 yaml 的内容传入 clash_rules 项，但是不太建议这么做：</p>
+<pre><code class="language-lua">clash_rules = &quot;rules:\n  - DOMAIN-SUFFIX,ip6-localhost,Direct&quot;
+</code></pre>
+<p>好处就是可以一个配置文件全搞定</p>
+<h1 id="geosite"><a class="header" href="#geosite">geosite</a></h1>
+<p>配置 geosite 的 mmdb 是用于 clash_rules的。也就是说，配置了 geosite后，clash_rules中的 GEOSITE 规则就生效了</p>
+<p>可以运行 ruci-cmd utils 中的 对应命令来下载 geosite 文件</p>
+<h1 id="geosite_gfw"><a class="header" href="#geosite_gfw">geosite_gfw</a></h1>
+<p>https://github.com/e1732a364fed/geosite-gfw</p>
+<pre><code>geosite_gfw = {
+    api_url = &quot;http://127.0.0.1:5134/check&quot;,
+    proxy = &quot;127.0.0.1:10800&quot;,
+    only_proxy = false,
+    ok_ban_out_tag = { &quot;Direct&quot;, &quot;Reject&quot;}
+}
+</code></pre>
+<p>geosite_gfw 是一个 人工智能 gfw项目，它用过机器学习训练出的模型来判断一个 域名 倒底是会被墙还是 可以直连</p>
+<p>主要用于 local 本地端进行分流。</p>
+<p>proxy 选项若给出，则 geosite_gfw 会在访问不到目标地址时，使用 proxy 再访问一次。
+而 若 only_proxy = true, 则 geosite_gfw 第一次方问目标地址就会使用 该 proxy.</p>
+<p>注意，如果您配置 geosite_gfw 的 proxy 又指向回 我们的 ruci 的监听端口的话，要确保按上文的 
+tag_route 把该端口的监听强制导向某 outbound, 避免再次进竹 geosite_gfw 环节 造成 回环。</p>
+<p>目前的geosite_gfw 的运行方式:</p>
+<pre><code class="language-sh">git clone https://github.com/e1732a364fed/geosite-gfw/
+cd geosite-gfw
+pip3 install transformers numpy scikit-learn flask requests
+pip3 install torch
+
+curl -LO &quot;https://huggingface.co/e1732a364fed/geosite-gfw/resolve/main/bert_geosite_by_body.zip?download=true&quot;
+curl -LO &quot;https://huggingface.co/e1732a364fed/geosite-gfw/resolve/main/bert_geosite_by_head.zip?download=true&quot;
+
+tar -xf bert_geosite_by_body.zip
+tar -xf bert_geosite_by_head.zip
+
+python3 classify.py --mode serve_api --port 5134
+</code></pre>
+<p>之后在 ruci 的 routes 中使用 geosite_gfw 就能生效啦。</p>
+<h1 id="接下来-4"><a class="header" href="#接下来-4">接下来</a></h1>
+<p>学点难的？
+<a href="lua/infinite.html">Infinite</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="介绍"><a class="header" href="#介绍">介绍</a></h1>
+<p>infinite 模式下，lua配置不使用 Config 变量，而使用 Infinite 变量</p>
+<p>基本格式:</p>
+<pre><code class="language-lua">Infinite = {
+    inbounds = {
+        {
+            tag = &quot;listen1&quot;,
+            generator = function(cid, state_index, data)
+
+            end
+        }
+    },
+    outbounds = {
+        {
+            tag = &quot;dial1&quot;,
+            generator = function(cid, state_index, data)
+
+            end
+        }
+    }
+}
+</code></pre>
+<p>回顾 <a href="lua/./config_intro.html">Config 入门</a> ，对比下我们发现，
+Infinite 的 基本结构 和 Config 类似，都有 inbounds 和 outbounds 列表。</p>
+<p>不过，列表中的元素中的项不再是 tag 和 chain , 而是 tag 和 函数 generator!</p>
+<p>generator 将被重复调用，以生成 chain. 区别就在于，通过函数，我们每次生成的
+chain 的内容是可以不同的，也就是说，infinite 实现了 动态链 机制！</p>
+<p>先看个能用的示例：</p>
+<p>下面这个演示 与<a href="lua/./config_intro.html">Config 入门</a>  中的示例 是等价的：</p>
+<pre><code class="language-lua">local direct = { type = &quot;Direct&quot; }
+
+Infinite = {
+    inbounds = { {
+        tag = &quot;listen1&quot;,
+        generator = function(cid, state_index, _data)
+            if state_index == -1 then
+                return 0, {
+                    stream_generator = {
+                        type = &quot;Listener&quot;, listen_addr = &quot;0.0.0.0:10800&quot;
+                    },
+                    new_thread_fn = function(cid, state_index, _data)
+                        local new_cid, newi, new_data = coroutine.yield(1, {
+                            type = &quot;Socks5&quot;
+                        })
+                        return -1, {}
+                    end
+                }
+            end
+        end
+    } },
+    outbounds = { {
+        tag = &quot;dial1&quot;,
+        generator = function(cid, state_index, _data)
+            if state_index == -1 then
+                return 0, direct
+            else
+                return -1, {}
+            end
+        end
+    } }
+}
+</code></pre>
+<p>首先是要了解，generator 的 返回值有两个，第一个值是 index, 负数表示链结束。
+第二个值是 当前链节点 所生成的 Map。</p>
+<p>如果是 Listener ，情况则复杂一些，要使用一个 {stream_generator, new_thread_fn }</p>
+<p>stream_generator 是一个 正常的 InMapConfig, 而 new_thread_fn 则是一个函数,
+它在 stream_generator 每监听到一个新请求时被调用, 因此它内部用到了 lua 的用法
+coroutine.yield， 这个就照抄就行。</p>
+<p>总之 coroutine.yield 参数中 我们又 返回 一个数和一个 InMapConfig, 
+而 coroutine.yield 函数的 返回的时机， 就是我们再次定义下一个 InMapConfig 的时机。
+如果链中还有 Map, 我们可以继续调用 coroutine.yield, 如果已经到了 链尾，我们则
+直接 <code>return -1, {}</code> 就行。</p>
+<p>不难，习惯就好。</p>
+<h1 id="接下来-5"><a class="header" href="#接下来-5">接下来</a></h1>
+<p><a href="lua/user_defined_protocol.html">lua自定义协议</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="lua用户自定义协议"><a class="header" href="#lua用户自定义协议">lua用户自定义协议</a></h1>
+<p>ruci 中提供 lua用户自定义协议方式来 大大提高使用的灵活性。</p>
+<p>方法是，用户首先在配置文件中指定 链中的一个Map为 Lua:</p>
+<pre><code class="language-lua">local config_21_lua_example1 = {
+    inbounds = {
+        listen1 = listen_socks5http,
+    },
+    outbounds = {
+        dial1 = { dial, tlsout, trojan_out, { type = &quot;Lua&quot; ,file_name = &quot;lua_protocol_e1.lua&quot;, handshake_function = &quot;Handshake2&quot;} }
+    }
+}
+</code></pre>
+<p>里面指定了 具体实现协议的 <code>lua_protocol_e1.lua</code> 文件 以及里面的 <code>Handshake2</code>函数 作为 协议的握手函数</p>
+<p>lua_protocol_e1.lua：</p>
+<pre><code class="language-lua">function Handshake(cid, behavior, addr, firstbuff, conn)
+    return conn, addr, firstbuff
+end
+</code></pre>
+<p>cid 为字符串， behavior 为1 表示 client, 为 2 表示 server,
+addr 表示 代理要连接的目标地址。
+firstbuff 为数据的首包。
+conn 为链中上一个Map 的连接。</p>
+<p>上面函数的具体实现就是将内容按上一个Map的原样返回</p>
+<p>如果要返回一个自定义的新Map，则可以返回一个 包含读、写、关、冲 四个函数的table</p>
+<pre><code class="language-lua">function Handshake(cid, behavior, addr, firstbuff, conn)
+    Cid=cid
+    TheConn = conn
+    Behavior = behavior
+     return { Read, Write, Close, Flush }, addr, firstbuff
+end
+</code></pre>
+<p>上面函数把 cid, behavior, conn 保存到了全局变量中，这样就可以在 四函数中访问这些值了</p>
+<p>其中， conn有 poll_read, poll_write, poll_close, poll_flush 四个方法。</p>
+<p>它们都接收一个 cx 作为参数。这里不用管cx是什么，只要记住原样传递即可。</p>
+<h2 id="read"><a class="header" href="#read">Read</a></h2>
+<p>Read函数除了 cx外还有一个 buf 变量。
+buf 变量可以作为 conn:poll_read的参数，也可以在 Wrap_read_buf(buf) 后变为一个
+lua可以访问的变量类型，其有如下方法：</p>
+<pre><code class="language-lua">put_slice
+filled_len
+filled_content
+</code></pre>
+<p>这种类型的变量也可以用 <code>local b = Create_read_buf(1024)</code> 创建。</p>
+<p>而如果要将 lua 可以访问的buf作为 poll_read的参数，则要加一个 <code>get_ptr</code>:</p>
+<pre><code>conn:poll_read(cx, b:get_ptr())
+</code></pre>
+<p>而使用完 lua的buf后，要调用 <code>b:drop()</code> 来释放内存。</p>
+<p>示例：</p>
+<pre><code class="language-lua">function Read(cx, buf)
+    -- print(&quot;lua read2 called&quot;)
+    local result = TheConn:poll_read(cx, buf)
+
+    if result:is_pending() then
+        return -1
+    elseif result:is_err() then
+        return -2
+    else
+        local rb = Wrap_read_buf(buf) -- 用 Wrap_read_buf 将 buf 转为 lua 可调用的 版本 (未转时仅能作 poll_read 的参数)
+
+        local n = rb:filled_len()
+        print(&quot;lua read2 got&quot;, n, Cid)
+
+        if n &gt; 10 then
+            n = 10
+        end
+
+        local s = rb:filled_content(n)
+        print(&quot;read head &quot;, inspect(s:sub(1, 1))) --获取第一个字节的值 并打印出来
+
+        return 0
+    end
+end
+</code></pre>
+<h2 id="write"><a class="header" href="#write">Write</a></h2>
+<pre><code class="language-lua">function Write(cx, str)
+    -- print(&quot;lua write2 called&quot;, str:len())
+    local result = TheConn:poll_write(cx, str)
+
+    if result:is_pending() then
+        return -1
+    elseif result:is_err() then
+        return -2
+    else
+        local n = result:get_n()
+        -- print(&quot;lua write2 finish&quot;, n)
+
+        return n
+    end
+end
+</code></pre>
+<h2 id="close"><a class="header" href="#close">Close</a></h2>
+<pre><code class="language-lua">function Close(cx)
+    -- print(&quot;close2 called&quot;)
+    local result = TheConn:poll_close(cx)
+
+    if result:is_pending() then
+        return -1
+    elseif result:is_err() then
+        return -2
+    else
+        return 0
+    end
+end
+</code></pre>
+<h2 id="flush"><a class="header" href="#flush">Flush</a></h2>
+<pre><code class="language-lua">function Flush(cx)
+    -- print(&quot;flush2 called&quot;)
+
+    local result = TheConn:poll_flush(cx)
+
+    if result:is_pending() then
+        return -1
+    elseif result:is_err() then
+        return -2
+    else
+        return 0
+    end
+end
+
+</code></pre>
+<h2 id="其它"><a class="header" href="#其它">其它</a></h2>
+<p>ruci还在lua中注册了 <code>Debug_print</code>,<code>Info_print</code>,<code>Warn_print</code> 函数，可以用于向日志打印自定义输出（以debug,info,warn 级别)</p>
+<p>还有 Load_file 函数，可以用它加载 tar 中的文件。（只在 静态链中有效）</p>
+<div style="break-before: page; page-break-before: always;"></div><p>json 格式与 lua 格式完全类似，只是以 json 语法重新写成。请查看
+resource/json_examples 中的示例</p>
+<p>json 格式只能配置静态链。</p>
+<p>json 格式可以由 <a href="https://github.com/e1732a364fed/ruci-webui/">ruci-webui</a> 导入 导出。</p>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="theme/pagetoc.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

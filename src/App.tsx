@@ -51,23 +51,12 @@ import InfoIcon from "@mui/icons-material/Info";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import SettingsIcon from "@mui/icons-material/Settings";
+import { MenuBook } from "@mui/icons-material";
+import ManualPanel from "./components/ManualPanel";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
-type SidebarView = "nodeEditor" | "info" | "controlPanel";
-
-// interface GroupNodeData {
-//   type: "group";
-//   category: "inbound" | "outbound";
-//   chainTag: string;
-// }
-
-// type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
-// type FlowNodeData = ChainNodeData | GroupNodeData;
-
-// const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
-//   return !node.id.startsWith("group-");
-// };
+type SidebarView = "nodeEditor" | "info" | "controlPanel" | "manual";
 
 const nodeTypes: NodeTypes = {
   chainNode: ChainNode,
@@ -778,7 +767,9 @@ export default function App() {
     if (currentSidebarView === "controlPanel") {
       return <ControlPanel />;
     }
-
+    if (currentSidebarView === "manual") {
+      return <ManualPanel />;
+    }
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -908,6 +899,16 @@ export default function App() {
               <AccountTreeIcon />
             </ListItemIcon>
             <ListItemText primary="Node Editor" />
+          </ListItemButton>
+
+          <ListItemButton
+            selected={currentSidebarView === "manual"}
+            onClick={() => setSidebarView("manual")}
+          >
+            <ListItemIcon>
+              <MenuBook />
+            </ListItemIcon>
+            <ListItemText primary="Manual" />
           </ListItemButton>
         </List>
       </Drawer>
