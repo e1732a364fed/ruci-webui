@@ -67,6 +67,8 @@ bun run tauri dev
 bun run tauri build
 ```
 
+### mac
+
 构建的 macos 的 app 在
 
     src-tauri/target/release/bundle/macos
@@ -75,6 +77,13 @@ dmg 在
 
     src-tauri/target/release/bundle/dmg
 
+有时编译 release 会报错 `failed to bundle project: error running bundle_dmg.sh`
+
+https://github.com/tauri-apps/tauri/issues/3055
+
+似乎只能重新尝试编译以解决 (不过 .app是已编译好了的)
+
+### windows
 
 windows 的 
 可执行文件在
@@ -88,6 +97,8 @@ msi 在
 安装 exe 在
 
     src-tauri\target\release\bundle\nsis
+
+### linux
 
 linux 会生成多个bundle,在
  `src-tauri\target\release\bundle`下的
