@@ -60,13 +60,12 @@ jobs:
         run: bun install
 
       - name: Build Tauri
-        run: |
-          bun run tauri build
-          mv src-tauri/target/release/bundle/dmg/*.dmg ruci-gui.dmg
+        run: bun run tauri build
 
       - name: Move Files
         if: matrix.platform == 'macos-latest'
         run: |
+          pwd
           mv src-tauri/target/release/bundle/dmg/*.dmg ruci-gui.dmg
 
       - name: Upload Mac DMG
@@ -154,11 +153,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - uses: nttld/setup-ndk@v1
+      - name: Setup Android NDK
+        uses: HoshinoSuzumi/setup-ndk@patch-1
         id: setup-ndk
         with:
-          git: https://github.com/HoshinoSuzumi/setup-ndk
-          branch: patch-1
           ndk-version: r27c
           add-to-path: false
 
