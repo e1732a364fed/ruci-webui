@@ -379,7 +379,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     label: "TLS Client",
     category: "outbound",
     defaultConfig: {
-      host: null,
+      host: "null",
       insecure: false,
       alpn: ["h2", "http/1.1"],
     } as TlsClientOptions,
