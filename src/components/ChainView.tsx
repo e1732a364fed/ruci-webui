@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -6,6 +6,7 @@ import ReactFlow, {
   Edge,
   NodeTypes,
   useNodesState,
+  Viewport,
 } from "reactflow";
 import { Paper } from "@mui/material";
 import { ChainNode, ChainNodeData } from "./nodes/ChainNode";
@@ -16,6 +17,8 @@ interface ChainViewProps {
   out_chainNodes: Node<ChainNodeData>[];
   inboundEdges: Edge[];
   outboundEdges: Edge[];
+  viewport?: Viewport;
+  onViewportChange?: (viewport: Viewport) => void;
 }
 
 const nodeTypes: NodeTypes = {
@@ -27,6 +30,8 @@ export const ChainView = ({
   out_chainNodes,
   inboundEdges,
   outboundEdges,
+  viewport,
+  onViewportChange,
 }: ChainViewProps) => {
   // 转换节点数据
   const initialNodes = useMemo(() => {
@@ -81,6 +86,13 @@ export const ChainView = ({
     setNodes(initialNodes);
   }, [initialNodes]);
 
+  const onMoveEnd = useCallback(
+    (event: any, viewport: Viewport) => {
+      onViewportChange?.(viewport);
+    },
+    [onViewportChange]
+  );
+
   return (
     <Paper
       elevation={3}
@@ -93,11 +105,13 @@ export const ChainView = ({
         nodes={nodes}
         edges={[]}
         nodeTypes={nodeTypes}
-        fitView
+        fitView={!viewport}
         nodesDraggable={true}
         onNodesChange={onNodesChange}
         nodesConnectable={false}
         elementsSelectable={true}
+        defaultViewport={viewport}
+        onMoveEnd={onMoveEnd}
       >
         <Background />
         <Controls />

@@ -15,6 +15,7 @@ import ReactFlow, {
   EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
+  Viewport,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Box, Grid, Paper, Tabs, Tab } from "@mui/material";
@@ -63,6 +64,26 @@ export default function App() {
   );
   const [editorTab, setEditorTab] = useState<EditorTab>("chain");
   const [chainView, setChainView] = useState<EditorView>("all");
+  const [chainViewport, setChainViewport] = useState<Viewport>({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
+  const [inboundViewport, setInboundViewport] = useState<Viewport>({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
+  const [outboundViewport, setOutboundViewport] = useState<Viewport>({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
+  const [routeViewport, setRouteViewport] = useState<Viewport>({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
 
   const onNodesChange = useCallback(
     (changes: NodeChange[], category: "inbound" | "outbound") => {
@@ -298,6 +319,8 @@ export default function App() {
                 out_chainNodes={outboundNodes}
                 inboundEdges={inboundEdges}
                 outboundEdges={outboundEdges}
+                viewport={chainViewport}
+                onViewportChange={setChainViewport}
               />
             </Grid>
           )}
@@ -344,7 +367,9 @@ export default function App() {
                       }
                     }, 0);
                   }}
-                  fitView
+                  defaultViewport={inboundViewport}
+                  onMoveEnd={(_, viewport) => setInboundViewport(viewport)}
+                  fitView={!inboundViewport}
                 >
                   <Background />
                   <Controls />
@@ -399,7 +424,9 @@ export default function App() {
                       }
                     }, 0);
                   }}
-                  fitView
+                  defaultViewport={outboundViewport}
+                  onMoveEnd={(_, viewport) => setOutboundViewport(viewport)}
+                  fitView={!outboundViewport}
                 >
                   <Background />
                   <Controls />
@@ -443,6 +470,8 @@ export default function App() {
                   (tag) => tag.tag
                 )}
                 config={getChainTags().config}
+                viewport={routeViewport}
+                onViewportChange={setRouteViewport}
               />
             </Paper>
           )}

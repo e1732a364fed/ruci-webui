@@ -10,6 +10,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   OnEdgesChange,
+  Viewport,
 } from "reactflow";
 import { Box, Paper, Typography } from "@mui/material";
 import { RouteNode } from "./nodes/RouteNode";
@@ -25,6 +26,8 @@ interface RouteEditorProps {
   initialEdges?: Edge[];
   onEdgesChange?: (edges: Edge[]) => void;
   config: any;
+  viewport?: Viewport;
+  onViewportChange?: (viewport: Viewport) => void;
 }
 
 const nodeTypes = {
@@ -37,6 +40,8 @@ const RouteEditor = ({
   initialEdges = [],
   onEdgesChange: onEdgesChangeCallback,
   config,
+  viewport,
+  onViewportChange,
 }: RouteEditorProps) => {
   // 创建初始节点
   const initialNodes: Node<RouteNodeData>[] = [
@@ -88,6 +93,13 @@ const RouteEditor = ({
     [nodes]
   );
 
+  const onMoveEnd = useCallback(
+    (event: any, viewport: Viewport) => {
+      onViewportChange?.(viewport);
+    },
+    [onViewportChange]
+  );
+
   return (
     <Box sx={{ height: "100%" }}>
       <Typography variant="h6" gutterBottom>
@@ -101,7 +113,9 @@ const RouteEditor = ({
           onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
-          fitView
+          defaultViewport={viewport}
+          onMoveEnd={onMoveEnd}
+          fitView={!viewport}
         >
           <Background />
           <Controls />
