@@ -47,7 +47,7 @@ const RouteEditor = ({
   const initialNodes: Node<RouteNodeData>[] = [
     // Inbound chains
     ...inboundChains.map((tag, index) => ({
-      id: `inbound-${tag}`,
+      id: `${tag}`,
       type: "routeNode",
       position: { x: 100, y: 100 + index * 100 },
       data: { tag, category: "inbound" as const },
@@ -55,7 +55,7 @@ const RouteEditor = ({
     })),
     // Outbound chains
     ...outboundChains.map((tag, index) => ({
-      id: `outbound-${tag}`,
+      id: `${tag}`,
       type: "routeNode",
       position: { x: 500, y: 100 + index * 100 },
       data: { tag, category: "outbound" as const },

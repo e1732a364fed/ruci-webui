@@ -17,8 +17,6 @@ import { AllViewNode, AllViewNodeData } from "./nodes/AllViewNode";
 interface ChainViewProps {
   in_chainNodes: Node<ChainNodeData>[];
   out_chainNodes: Node<ChainNodeData>[];
-  inboundEdges: Edge[];
-  outboundEdges: Edge[];
   viewport?: Viewport;
   onViewportChange?: (viewport: Viewport) => void;
   nodePositions: Record<string, { x: number; y: number }>;
@@ -32,8 +30,6 @@ const nodeTypes: NodeTypes = {
 export const ChainView = ({
   in_chainNodes,
   out_chainNodes,
-  inboundEdges,
-  outboundEdges,
   viewport,
   onViewportChange,
   nodePositions,
@@ -94,7 +90,7 @@ export const ChainView = ({
         type: "allViewNode",
         data: {
           type: "chain",
-          label: "Chain",
+          label: "InboundChain",
           category: "inbound",
           chainTag: tag,
           nodes: chainNodes.map((node) => ({
@@ -124,7 +120,7 @@ export const ChainView = ({
         type: "allViewNode",
         data: {
           type: "chain",
-          label: "Chain",
+          label: "OutboundChain",
           category: "outbound",
           chainTag: tag,
           nodes: chainNodes.map((node) => ({

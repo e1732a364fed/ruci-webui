@@ -56,7 +56,8 @@ export const AllViewNode = memo(
       >
         <Box>
           <Typography variant="subtitle1" fontWeight="bold">
-            Chain: {data.chainTag}
+            {data.label}
+            <br /> {data.chainTag}
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
             {data.nodes.map((node, index) => (

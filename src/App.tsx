@@ -591,8 +591,6 @@ export default function App() {
               <ChainView
                 in_chainNodes={inboundNodes}
                 out_chainNodes={outboundNodes}
-                inboundEdges={inboundEdges}
-                outboundEdges={outboundEdges}
                 viewport={chainViewport}
                 onViewportChange={setChainViewport}
                 nodePositions={chainNodePositions}
