@@ -63,6 +63,11 @@ src-tauri/target/release/bundle/macos
 dmg 在
 src-tauri/target/release/bundle/dmg
 
+windows 的 msi 在
+src-tauri\target\release\bundle\msi
+安装 exe 在
+src-tauri\target\release\bundle\nsis
+
 ### 安卓
 
 rustup target add aarch64-linux-android
