@@ -14,6 +14,9 @@ import _, { isNull } from "lodash"; // bun i lodash, bun i -D @types/lodash
 import { useEffect, useState, useContext } from "react";
 import { NodeConfigContext } from "../contexts/NodeConfigContext";
 
+// 用于跟踪已添加的可选字段
+const addedOptionalFields = new Set<string>();
+
 interface NodeConfigPanelProps {
   selectedNode: Node<ChainNodeData> | null;
   onNodeUpdate: (node: Node<ChainNodeData>) => void;
@@ -138,12 +141,18 @@ const NodeConfigPanel = ({
       // 使用异步重置确保完全清除旧状态
       reset(selectedNode.data.config || {}, {
         keepDefaultValues: false,
-        keepDirty: false,
+        keepDirty: true,
       });
     } else {
       reset({});
     }
   }, [selectedNode, reset]);
+
+  // 当节点变化时，清除已添加字段集合
+  useEffect(() => {
+    // console.log("Clearing addedOptionalFields due to node change");
+    addedOptionalFields.clear();
+  }, [selectedNode]);
 
   // 处理新添加的节点，确保可选项不会自动填充
   useEffect(() => {
@@ -157,7 +166,7 @@ const NodeConfigPanel = ({
         {},
         {
           keepDefaultValues: false,
-          keepDirty: false,
+          keepDirty: true,
         }
       );
     }
@@ -172,6 +181,106 @@ const NodeConfigPanel = ({
   }
 
   const onSubmit = (data: any) => {
+    // console.log("onSubmit raw data", data);
+
+    // 获取表单中所有已注册的字段
+    const formValues = methods.getValues();
+    // console.log("formValues", formValues);
+
+    // 深度合并数据，确保所有已添加的字段都被包含
+    const deepMerge = (target: any, source: any): any => {
+      if (source === undefined || source === null) {
+        return target;
+      }
+
+      if (target === undefined || target === null) {
+        return source;
+      }
+
+      if (Array.isArray(target) && Array.isArray(source)) {
+        return [...source];
+      }
+
+      if (typeof target === "object" && typeof source === "object") {
+        const result = { ...target };
+        Object.keys(source).forEach((key) => {
+          if (key in target) {
+            result[key] = deepMerge(target[key], source[key]);
+          } else {
+            result[key] = source[key];
+          }
+        });
+        return result;
+      }
+
+      return source;
+    };
+
+    const mergedData = deepMerge(formValues, data);
+    // console.log("mergedData after deep merge", mergedData);
+
+    // 应用默认值到已添加但值为 undefined 的字段
+    const applyDefaultsToAddedFields = (
+      data: any,
+      nodeTypeConfig: any
+    ): any => {
+      if (!nodeTypeConfig) return data;
+
+      // 创建结果对象的副本
+      const result = _.cloneDeep(data);
+
+      // 遍历所有已添加的字段
+      // console.log("Checking added fields:", Array.from(addedOptionalFields));
+      addedOptionalFields.forEach((fieldPath) => {
+        // 检查字段值是否为 undefined
+        const fieldValue = _.get(result, fieldPath);
+        if (fieldValue === undefined || fieldValue === null) {
+          // console.log(
+          //   `Field ${fieldPath} is undefined, applying default value`
+          // );
+
+          // 查找默认值
+          const pathParts = fieldPath.split(".");
+          let currentConfig = nodeTypeConfig.defaultConfig;
+          let defaultValue = undefined;
+
+          // 遍历路径部分，查找默认值
+          for (let i = 0; i < pathParts.length; i++) {
+            const part = pathParts[i];
+            if (!currentConfig || typeof currentConfig !== "object") {
+              break;
+            }
+
+            const fieldOrValue = currentConfig[part];
+            if (!fieldOrValue) {
+              break;
+            }
+
+            const { value } = extractFieldValue(fieldOrValue);
+
+            if (i === pathParts.length - 1) {
+              // 找到了默认值
+              defaultValue = value;
+              break;
+            }
+
+            // 继续遍历
+            currentConfig = value;
+          }
+
+          if (defaultValue !== undefined) {
+            // console.log(
+            //   `Applying default value for ${fieldPath}:`,
+            //   defaultValue
+            // );
+            _.set(result, fieldPath, defaultValue);
+          }
+        }
+      });
+
+      return result;
+    };
+
     // 清理数据，移除所有 undefined 和 null 值
     const cleanData = (obj: any): any => {
       if (obj === null || obj === undefined) {
@@ -203,7 +312,22 @@ const NodeConfigPanel = ({
       return obj;
     };
 
-    const cleanedData = cleanData(data) || {};
+    // 查找节点类型配置
+    const nodeTypeConfig = NODE_TYPES.find(
+      (nodeType) =>
+        nodeType.type === selectedNode.data.type &&
+        nodeType.category === selectedNode.data.category
+    );
+
+    // 先应用默认值到已添加的字段
+    const dataWithDefaults = nodeTypeConfig
+      ? applyDefaultsToAddedFields(mergedData, nodeTypeConfig)
+      : mergedData;
+    // console.log("dataWithDefaults", dataWithDefaults);
+
+    // 然后清理数据
+    const cleanedData = cleanData(dataWithDefaults) || {};
+    // console.log("cleanedData", cleanedData);
 
     const verifyNumberTypes = (obj: any, template: any) => {
       if (isNull(template)) {
@@ -623,7 +747,7 @@ const OptionalField = ({
   control,
 }: OptionalFieldProps) => {
   const [isAdded, setIsAdded] = useState(false);
-  const { setValue, unregister, getValues } = useFormContext();
+  const { setValue, register, unregister, getValues } = useFormContext();
   const nodeContext = useContext(NodeConfigContext);
   const selectedNode = nodeContext?.selectedNode;
 
@@ -642,6 +766,10 @@ const OptionalField = ({
       (configValue !== undefined && configValue !== null)
     ) {
       setIsAdded(true);
+      register(path);
+
+      // 添加到已添加字段集合
+      addedOptionalFields.add(path);
 
       // 如果表单中没有值但配置中有值，将配置中的值设置到表单中
       if (
@@ -649,9 +777,13 @@ const OptionalField = ({
         configValue !== undefined &&
         configValue !== null
       ) {
-        setValue(path, configValue);
+        // 确保从配置中加载的值也被标记为 dirty
+        setValue(path, configValue, { shouldDirty: true, shouldTouch: true });
       }
     } else {
+      // 从已添加字段集合中移除
+      addedOptionalFields.delete(path);
+
       setIsAdded(false);
     }
   }, [getValues, path, selectedNode, setValue]);
@@ -660,22 +792,60 @@ const OptionalField = ({
     // 处理 Field 类型
     const { value } = extractFieldValue(defaultValue);
 
+    // 修改这里，确保字段被标记为 dirty
+    const setValueOptions = { shouldDirty: true, shouldTouch: true };
+
     // 使用 setValue 将过滤后的默认值添加到表单中
     if (Array.isArray(value)) {
-      setValue(path, [...value]);
+      setValue(path, [...value], setValueOptions);
     } else if (typeof value === "object" && value !== null) {
       const filteredValue = filterOptionalFields(value);
-      setValue(path, filteredValue);
+
+      // 递归设置所有嵌套字段的值
+      const setNestedValues = (obj: any, basePath: string) => {
+        Object.entries(obj).forEach(([key, val]) => {
+          const fieldPath = `${basePath}.${key}`;
+          if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+            setNestedValues(val, fieldPath);
+          } else {
+            setValue(fieldPath, val, setValueOptions);
+            // 添加到已添加字段集合
+            addedOptionalFields.add(fieldPath);
+          }
+        });
+      };
+
+      // 先设置整个对象
+      setValue(path, filteredValue, setValueOptions);
+
+      // 然后递归设置所有嵌套字段
+      if (typeof filteredValue === "object" && filteredValue !== null) {
+        setNestedValues(filteredValue, path);
+      }
     } else {
-      setValue(path, value);
+      setValue(path, value, setValueOptions);
     }
 
+    // 添加到已添加字段集合
+    addedOptionalFields.add(path);
+    // console.log("Added field to tracking:", path);
+    // console.log("Current tracked fields:", Array.from(addedOptionalFields));
+
+    // console.log("handleAdd setIsAdded(true)", path);
+    register(path);
     setIsAdded(true);
   };
 
   const handleRemove = () => {
     // 使用 unregister 从表单中移除该项
     unregister(path);
+
+    // 从已添加字段集合中移除
+    addedOptionalFields.delete(path);
+    // console.log("Removed field from tracking:", path);
+    // console.log("Current tracked fields:", Array.from(addedOptionalFields));
+
+    // console.log("handleRemove setIsAdded(false)", path);
     setIsAdded(false);
   };
 
@@ -706,7 +876,13 @@ const OptionalField = ({
         name={subPath}
         control={control}
         defaultValue={subValue}
-        render={({ field }) => renderFieldByType(field, subKey, subValue)}
+        render={({ field }) => {
+          // 确保字段值不为 undefined
+          if (field.value === undefined) {
+            field.onChange(subValue);
+          }
+          return renderFieldByType(field, subKey, subValue);
+        }}
       />
     );
   };
@@ -741,7 +917,6 @@ const OptionalField = ({
                 const { value: subValue, optional: isSubOptional } =
                   extractFieldValue(subFieldOrValue);
 
-                // 如果子项是可选的，始终使用 OptionalField 组件
                 if (isSubOptional) {
                   return (
                     <OptionalField
@@ -834,6 +1009,7 @@ const OptionalField = ({
                     // 基本类型
                     return (
                       <Box key={subPath} sx={{ margin: 1 }}>
+                        basic
                         {renderNestedField(subPath, subKey, subValue)}
                       </Box>
                     );
@@ -853,16 +1029,23 @@ const OptionalField = ({
           name={path}
           control={control}
           defaultValue={actualDefaultValue}
-          render={({ field }) =>
-            renderFieldByType(field, fieldKey, actualDefaultValue)
-          }
+          render={({ field }) => {
+            // 确保字段值不为 undefined
+            if (field.value === undefined) {
+              field.onChange(actualDefaultValue);
+            }
+            return renderFieldByType(field, fieldKey, actualDefaultValue);
+          }}
         />
       );
     }
   };
 
   return (
-    <Box sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}>
+    <Box
+      sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+      data-field-path={path}
+    >
       <Box
         sx={{
           display: "flex",
