@@ -2,14 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import ReactFlow, {
   Background,
   Controls,
-  MiniMap,
+  // MiniMap,
   Node,
   Edge,
   Connection,
   addEdge,
-  useNodesState,
-  useEdgesState,
-  OnEdgesChange,
+  // useNodesState,
+  // useEdgesState,
+  // OnEdgesChange,
   NodeTypes,
   NodeChange,
   EdgeChange,
@@ -27,6 +27,7 @@ import NodeConfigPanel from "./components/NodeConfigPanel";
 import JsonPreviewPanel from "./components/JsonPreviewPanel";
 import RouteEditor from "./components/RouteEditor";
 import { ChainView } from "./components/ChainView";
+import { AllViewNodeData } from "./components/nodes/AllViewNode";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
@@ -38,11 +39,11 @@ interface GroupNodeData {
 }
 
 type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
-type FlowNodeData = ChainNodeData | GroupNodeData;
+// type FlowNodeData = ChainNodeData | GroupNodeData;
 
-const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
-  return !node.id.startsWith("group-");
-};
+// const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
+//   return !node.id.startsWith("group-");
+// };
 
 const nodeTypes: NodeTypes = {
   chainNode: ChainNode,
@@ -84,6 +85,9 @@ export default function App() {
     y: 0,
     zoom: 1,
   });
+  const [chainNodePositions, setChainNodePositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
 
   const onNodesChange = useCallback(
     (changes: NodeChange[], category: "inbound" | "outbound") => {
@@ -298,6 +302,14 @@ export default function App() {
     return chain;
   };
 
+  const onChainNodesChange = useCallback((nodes: Node<AllViewNodeData>[]) => {
+    const positions: Record<string, { x: number; y: number }> = {};
+    nodes.forEach((node) => {
+      positions[node.id] = node.position;
+    });
+    setChainNodePositions(positions);
+  }, []);
+
   const renderChainEditor = () => {
     return (
       <>
@@ -321,6 +333,8 @@ export default function App() {
                 outboundEdges={outboundEdges}
                 viewport={chainViewport}
                 onViewportChange={setChainViewport}
+                nodePositions={chainNodePositions}
+                onNodesChange={onChainNodesChange}
               />
             </Grid>
           )}

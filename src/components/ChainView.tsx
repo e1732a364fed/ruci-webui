@@ -7,6 +7,8 @@ import ReactFlow, {
   NodeTypes,
   useNodesState,
   Viewport,
+  NodeChange,
+  applyNodeChanges,
 } from "reactflow";
 import { Paper } from "@mui/material";
 import { ChainNode, ChainNodeData } from "./nodes/ChainNode";
@@ -19,6 +21,8 @@ interface ChainViewProps {
   outboundEdges: Edge[];
   viewport?: Viewport;
   onViewportChange?: (viewport: Viewport) => void;
+  nodePositions: Record<string, { x: number; y: number }>;
+  onNodesChange: (nodes: Node<AllViewNodeData>[]) => void;
 }
 
 const nodeTypes: NodeTypes = {
@@ -32,12 +36,13 @@ export const ChainView = ({
   outboundEdges,
   viewport,
   onViewportChange,
+  nodePositions,
+  onNodesChange,
 }: ChainViewProps) => {
   // 转换节点数据
   const initialNodes = useMemo(() => {
     const chainGroups = new Map<string, Node<ChainNodeData>[]>();
 
-    // 收集所有链
     [...in_chainNodes, ...out_chainNodes].forEach((node) => {
       if (node.data.chainTag) {
         const group = chainGroups.get(node.data.chainTag) || [];
@@ -49,13 +54,19 @@ export const ChainView = ({
     const viewNodes: Node<AllViewNodeData>[] = [];
     let yOffset = 100;
 
-    // 为每个链创建节点
     chainGroups.forEach((chainGroupNodes, chainTag) => {
       const category = chainGroupNodes[0].data.category;
-      const x = category === "inbound" ? 100 : 500;
+      const nodeId = `chain-${category}-${chainTag}`;
+      const savedPosition = nodePositions[nodeId];
+      const x = savedPosition
+        ? savedPosition.x
+        : category === "inbound"
+        ? 100
+        : 500;
+      const y = savedPosition ? savedPosition.y : yOffset;
 
       viewNodes.push({
-        id: `chain-${category}-${chainTag}`,
+        id: nodeId,
         type: "allViewNode",
         data: {
           type: "chain",
@@ -68,23 +79,40 @@ export const ChainView = ({
             config: node.data.config,
           })),
         },
-        position: { x, y: yOffset },
+        position: { x, y },
         draggable: true,
       });
 
-      yOffset += (chainGroupNodes.length + 2) * 120;
+      if (!savedPosition) {
+        yOffset += (chainGroupNodes.length + 2) * 120;
+      }
     });
 
     return viewNodes;
-  }, [in_chainNodes, out_chainNodes]);
+  }, [in_chainNodes, out_chainNodes, nodePositions]);
 
-  const [nodes, setNodes, onNodesChange] =
+  const [nodes, setNodes, handleNodesChange] =
     useNodesState<AllViewNodeData>(initialNodes);
 
-  // 使用 useEffect 来更新节点
+  // 简化节点变化处理逻辑
+  const handleNodeChanges = useCallback(
+    (changes: NodeChange[]) => {
+      handleNodesChange(changes);
+      // 只在节点位置变化完成时通知父组件
+      const positionChanges = changes.filter(
+        (change) => change.type === "position" && change.dragging === false
+      );
+      if (positionChanges.length > 0) {
+        const updatedNodes = applyNodeChanges(changes, nodes);
+        onNodesChange(updatedNodes);
+      }
+    },
+    [nodes, handleNodesChange, onNodesChange]
+  );
+
   useEffect(() => {
     setNodes(initialNodes);
-  }, [initialNodes]);
+  }, [initialNodes, setNodes]);
 
   const onMoveEnd = useCallback(
     (event: any, viewport: Viewport) => {
@@ -96,10 +124,7 @@ export const ChainView = ({
   return (
     <Paper
       elevation={3}
-      sx={{
-        height: "100%",
-        "& .react-flow__renderer": { borderRadius: 1 },
-      }}
+      sx={{ height: "100%", "& .react-flow__renderer": { borderRadius: 1 } }}
     >
       <ReactFlow
         nodes={nodes}
@@ -107,7 +132,7 @@ export const ChainView = ({
         nodeTypes={nodeTypes}
         fitView={!viewport}
         nodesDraggable={true}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodeChanges}
         nodesConnectable={false}
         elementsSelectable={true}
         defaultViewport={viewport}
