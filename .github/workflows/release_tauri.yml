@@ -182,6 +182,7 @@ jobs:
 
       - name: Sign APK
         run: |
+          echo "export PATH=\$PATH:\$ANDROID_HOME/build-tools" >> $GITHUB_ENV
           chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./
