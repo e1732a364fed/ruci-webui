@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 
 const WelcomeInfo: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ const WelcomeInfo: React.FC = () => {
           alignItems: "center",
         }}
       >
+        <AccountTreeIcon sx={{ fontSize: 100, color: "primary.main", mb: 3 }} />
         <Typography variant="h4" gutterBottom>
           Welcome to Ruci WebUI
         </Typography>

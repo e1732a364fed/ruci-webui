@@ -44,15 +44,17 @@ import RouteEditor from "./components/RouteEditor";
 import { ChainView } from "./components/ChainView";
 import { AllViewNodeData } from "./components/nodes/AllViewNode";
 import WelcomeInfo from "./components/WelcomeInfo";
+import ControlPanel from "./components/ControlPanel";
 // Import icons
 import MenuIcon from "@mui/icons-material/Menu";
 import InfoIcon from "@mui/icons-material/Info";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
-type SidebarView = "nodeEditor" | "info";
+type SidebarView = "nodeEditor" | "info" | "controlPanel";
 
 // interface GroupNodeData {
 //   type: "group";
@@ -754,6 +756,10 @@ export default function App() {
       return <WelcomeInfo />;
     }
 
+    if (currentSidebarView === "controlPanel") {
+      return <ControlPanel />;
+    }
+
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -872,6 +878,15 @@ export default function App() {
               <AccountTreeIcon />
             </ListItemIcon>
             <ListItemText primary="Node Editor" />
+          </ListItemButton>
+          <ListItemButton
+            selected={currentSidebarView === "controlPanel"}
+            onClick={() => setSidebarView("controlPanel")}
+          >
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Control Panel" />
           </ListItemButton>
         </List>
       </Drawer>
