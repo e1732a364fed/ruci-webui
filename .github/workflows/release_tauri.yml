@@ -159,6 +159,7 @@ jobs:
         run: |
           $ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager "build-tools;34.0.0"
           echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
+          chmod +x ./scripts/sign_apk.sh
 
       - name: Setup Android NDK
         uses: HoshinoSuzumi/setup-ndk@patch-1
@@ -188,8 +189,6 @@ jobs:
 
       - name: Sign APK
         run: |
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
-          chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./
 
@@ -211,8 +210,6 @@ jobs:
 
       - name: Sign APK64
         run: |
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
-          chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./ruci-gui.apk
 
