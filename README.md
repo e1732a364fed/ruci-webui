@@ -9,6 +9,10 @@ Ruci WebUI 是一个基于 React 和 TypeScript 的现代化 Web 用户界面项
 - ReactFlow 11.11
 - React Hook Form
 
+
+
+![screenshot](screenshot.png)
+
 ## 功能特点
 
 - 使用 Vite 构建，支持快速的开发体验和热模块替换（HMR）
