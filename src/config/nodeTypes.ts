@@ -92,7 +92,7 @@ export const BindDialerDefault = new BindDialerConfig(
   {
     dns_server_list: [],
     ip_strategy: LookupIpStrategy.Ipv4Only,
-    static_pairs: { a: "b" },
+    static_pairs: {},
   },
   {
     tun_dev_name: "dev",
