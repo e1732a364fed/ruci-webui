@@ -249,29 +249,32 @@ export default function App() {
   }, []);
 
   const getChainTags = () => {
-    const inbounds = inboundNodes
+    const inbounds: Record<string, Record<string, any>[]> = {};
+    const outbounds: Record<string, Record<string, any>[]> = {};
+
+    inboundNodes
       .filter(
         (node) =>
           node.data.chainTag &&
           !node.id.startsWith("group-") &&
           isStartNode(node, inboundNodes, inboundEdges)
       )
-      .map((node) => ({
-        tag: node.data.chainTag,
-        chain: getNodeChain(node, inboundNodes, inboundEdges),
-      }));
+      .forEach((node) => {
+        const tag: string = node.data.chainTag;
+        inbounds[tag] = getNodeChain(node, inboundNodes, inboundEdges);
+      });
 
-    const outbounds = outboundNodes
+    outboundNodes
       .filter(
         (node) =>
           node.data.chainTag &&
           !node.id.startsWith("group-") &&
           isStartNode(node, outboundNodes, outboundEdges)
       )
-      .map((node) => ({
-        tag: node.data.chainTag,
-        chain: getNodeChain(node, outboundNodes, outboundEdges),
-      }));
+      .forEach((node) => {
+        const tag: string = node.data.chainTag;
+        outbounds[tag] = getNodeChain(node, outboundNodes, outboundEdges);
+      });
 
     const config = {
       inbounds: inbounds,
@@ -283,8 +286,8 @@ export default function App() {
     };
 
     return {
-      inbounds: inbounds,
-      outbounds: outbounds,
+      inbounds,
+      outbounds,
       config,
     };
   };
@@ -393,15 +396,13 @@ export default function App() {
 
   const handleExportConfigJson = useCallback(() => {
     const config = getChainTags().config;
-    const exportData = {
-      inbounds: config.inbounds.map((item) => ({
-        tag: item.tag,
-        chain: item.chain,
-      })),
-      outbounds: config.outbounds.map((item) => ({
-        tag: item.tag,
-        chain: item.chain,
-      })),
+    const exportData: {
+      inbounds: Record<string, any[]>;
+      outbounds: Record<string, any[]>;
+      tag_route: [string, string][];
+    } = {
+      inbounds: config.inbounds,
+      outbounds: config.outbounds,
       tag_route: config.tag_route,
     };
 
@@ -448,7 +449,7 @@ export default function App() {
     try {
       const importData = JSON.parse(jsonString);
 
-      // 清除现有数据
+      // Clear existing data
       setInboundNodes([]);
       setOutboundNodes([]);
       setInboundEdges([]);
@@ -456,105 +457,111 @@ export default function App() {
       setRouteEdges([]);
       setChainNodePositions({});
 
-      // 导入入站链
+      // Import inbound nodes
       if (importData.inbounds) {
-        const newInboundNodes: Node<ChainNodeData>[] = [];
-        const newInboundEdges: Edge[] = [];
+        const sortedKeys = Object.keys(importData.inbounds).sort();
+        Object.entries(importData.inbounds).forEach(
+          ([key, inbound]: [string, unknown]) => {
+            const inboundArray = inbound as Record<string, any>[];
+            const newInboundNodes: Node<ChainNodeData>[] = [];
+            const newInboundEdges: Edge[] = [];
+            let prevNodeId: string | null = null;
 
-        // 为每个 chain 创建一列节点
-        importData.inbounds.forEach((inbound: any, chainIndex: number) => {
-          let prevNodeId: string | null = null;
-          // 在这个 chain 中创建节点
-          inbound.chain.forEach((item: any, nodeIndex: number) => {
-            const type = item.type; //Object.keys(item)[0];
-            const config = item; //item[type];
-            const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
+            inboundArray.forEach((item: any, nodeIndex: number) => {
+              const type = item.type;
+              const config = item;
+              const nodeId = `${type.toLowerCase()}-${Date.now()}-${key}-${nodeIndex}`;
 
-            const node: Node<ChainNodeData> = {
-              id: nodeId,
-              type: "chainNode",
-              // 每个 chain 占据一列，列之间间隔 300 像素
-              // 同一 chain 中的节点垂直排列，间隔 150 像素
-              position: {
-                x: 100 + chainIndex * 300,
-                y: 100 + nodeIndex * 150,
-              },
-              data: {
-                type,
-                label: type,
-                category: "inbound",
-                chainTag: inbound.tag,
-                config,
-              },
-            };
+              const keyIndex = sortedKeys.indexOf(key);
+              const nodePositionX = 100 + keyIndex * 300;
 
-            if (prevNodeId) {
-              newInboundEdges.push({
-                id: `${prevNodeId}-${nodeId}`,
-                source: prevNodeId,
-                target: nodeId,
-                type: "chainEdge",
-              });
-            }
+              const node: Node<ChainNodeData> = {
+                id: nodeId,
+                type: "chainNode",
+                position: {
+                  x: nodePositionX,
+                  y: 100 + nodeIndex * 150,
+                },
+                data: {
+                  type,
+                  label: type,
+                  category: "inbound",
+                  chainTag: key,
+                  config,
+                },
+              };
 
-            newInboundNodes.push(node);
-            prevNodeId = nodeId;
-          });
-        });
-        setInboundNodes(newInboundNodes);
-        setInboundEdges(newInboundEdges);
+              if (prevNodeId) {
+                newInboundEdges.push({
+                  id: `${prevNodeId}-${nodeId}`,
+                  source: prevNodeId,
+                  target: nodeId,
+                  type: "chainEdge",
+                });
+              }
+
+              newInboundNodes.push(node);
+              prevNodeId = nodeId;
+            });
+            setInboundNodes((prev) => [...prev, ...newInboundNodes]);
+            setInboundEdges((prev) => [...prev, ...newInboundEdges]);
+          }
+        );
       }
 
-      // 导入出站链
+      // Import outbound nodes
       if (importData.outbounds) {
-        const newOutboundNodes: Node<ChainNodeData>[] = [];
-        const newOutboundEdges: Edge[] = [];
+        const sortedKeys = Object.keys(importData.outbounds).sort();
+        Object.entries(importData.outbounds).forEach(
+          ([key, outbound]: [string, unknown]) => {
+            const outboundArray = outbound as Record<string, any>[];
+            const newOutboundNodes: Node<ChainNodeData>[] = [];
+            const newOutboundEdges: Edge[] = [];
+            let prevNodeId: string | null = null;
 
-        // 为每个 chain 创建一列节点
-        importData.outbounds.forEach((outbound: any, chainIndex: number) => {
-          let prevNodeId: string | null = null;
-          // 在这个 chain 中创建节点
-          outbound.chain.forEach((item: any, nodeIndex: number) => {
-            const type = item.type; //const type = Object.keys(item)[0];
-            const config = item; //const config = item[type];
+            outboundArray.forEach((item: any, nodeIndex: number) => {
+              const type = item.type;
+              const config = item;
+              const nodeId = `${type.toLowerCase()}-${Date.now()}-${key}-${nodeIndex}`;
 
-            const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
+              const keyIndex = sortedKeys.indexOf(key);
+              const nodePositionX = 100 + keyIndex * 300;
 
-            const node: Node<ChainNodeData> = {
-              id: nodeId,
-              type: "chainNode",
-              // 每个 chain 占据一列，列之间间隔 300 像素
-              // 同一 chain 中的节点垂直排列，间隔 150 像素
-              position: {
-                x: 100 + chainIndex * 300,
-                y: 100 + nodeIndex * 150,
-              },
-              data: {
-                type,
-                label: type,
-                category: "outbound",
-                chainTag: outbound.tag,
-                config,
-              },
-            };
-            newOutboundNodes.push(node);
+              const node: Node<ChainNodeData> = {
+                id: nodeId,
+                type: "chainNode",
+                position: {
+                  x: nodePositionX,
+                  y: 100 + nodeIndex * 150,
+                },
+                data: {
+                  type,
+                  label: type,
+                  category: "outbound",
+                  chainTag: key,
+                  config,
+                },
+              };
 
-            if (prevNodeId) {
-              newOutboundEdges.push({
-                id: `${prevNodeId}-${nodeId}`,
-                source: prevNodeId,
-                target: nodeId,
-                type: "chainEdge",
-              });
-            }
-            prevNodeId = nodeId;
-          });
-        });
-        setOutboundNodes(newOutboundNodes);
-        setOutboundEdges(newOutboundEdges);
+              newOutboundNodes.push(node);
+
+              if (prevNodeId) {
+                newOutboundEdges.push({
+                  id: `${prevNodeId}-${nodeId}`,
+                  source: prevNodeId,
+                  target: nodeId,
+                  type: "chainEdge",
+                });
+              }
+              prevNodeId = nodeId;
+            });
+            setOutboundNodes((prev) => [...prev, ...newOutboundNodes]);
+            setOutboundEdges((prev) => [...prev, ...newOutboundEdges]);
+          }
+        );
       }
 
-      // 导入路由
+      // Import route edges
       if (importData.tag_route) {
         const newRouteEdges: Edge[] = importData.tag_route.map(
           ([source, target]: [string, string]) => ({
@@ -745,8 +752,8 @@ export default function App() {
               <RouteEditor
                 initialEdges={routeEdges}
                 onEdgesChange={setRouteEdges}
-                inboundChains={getChainTags().inbounds.map((tag) => tag.tag)}
-                outboundChains={getChainTags().outbounds.map((tag) => tag.tag)}
+                inboundChains={Object.keys(getChainTags().inbounds)}
+                outboundChains={Object.keys(getChainTags().outbounds)}
                 config={getChainTags().config}
                 viewport={routeViewport}
                 onViewportChange={setRouteViewport}

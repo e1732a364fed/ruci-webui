@@ -2,8 +2,8 @@ import { Box, Typography } from "@mui/material";
 
 interface JsonPreviewPanelProps {
   config: {
-    inbounds?: { tag: string; chain: Record<string, any>[] }[];
-    outbounds?: { tag: string; chain: Record<string, any>[] }[];
+    inbounds?: Record<string, Record<string, any>[]>;
+    outbounds?: Record<string, Record<string, any>[]>;
     tag_route: [string, string][];
     fallback_route: [string, string][];
   };

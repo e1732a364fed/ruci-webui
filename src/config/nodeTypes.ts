@@ -41,6 +41,33 @@ export function isStreamConsumer(
   return false;
 }
 
+export const BindDialerDefault = {
+  bind_addr: "null",
+  dial_addr: "",
+  dns_client: {
+    dns_server_list: [],
+    ip_strategy: "Ipv4Only",
+    static_pairs: { a: "b" },
+  },
+  in_auto_route: {
+    tun_dev_name: "dev",
+    tun_gateway: "gate",
+    router_ip: "ip",
+    original_dev_name: "od",
+    direct_list: [],
+    dns_list: [],
+  },
+  out_auto_route: {
+    tun_dev_name: "",
+    original_dev_name: "",
+    router_ip: "",
+  },
+  ext: {
+    fixed_target_addr: "",
+    pre_defined_early_data: "abc",
+  },
+} as BindDialerConfig;
+
 export const NODE_TYPES: NodeTypeConfig[] = [
   // Inbound Nodes
   {
@@ -73,32 +100,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     type: "BindDialer",
     label: "Bind Dialer",
     category: "inbound",
-    defaultConfig: {
-      bind_addr: "null",
-      dial_addr: "",
-      dns_client: {
-        dns_server_list: [],
-        ip_strategy: "Ipv4Only",
-        static_pairs: { a: "b" },
-      },
-      in_auto_route: {
-        tun_dev_name: "dev",
-        tun_gateway: "gate",
-        router_ip: "ip",
-        original_dev_name: "od",
-        direct_list: [],
-        dns_list: [],
-      },
-      out_auto_route: {
-        tun_dev_name: "",
-        original_dev_name: "",
-        router_ip: "",
-      },
-      ext: {
-        fixed_target_addr: "",
-        pre_defined_early_data: "abc",
-      },
-    } as BindDialerConfig,
+    defaultConfig: BindDialerDefault,
   },
   {
     type: "Listener",
@@ -154,7 +156,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
   },
   {
     type: "TLS",
-    label: "TLS",
+    label: "TLS Server",
     category: "inbound",
     defaultConfig: {
       cert: "",
@@ -352,14 +354,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     type: "BindDialer",
     label: "Bind Dialer",
     category: "outbound",
-    defaultConfig: {
-      bind_addr: "null",
-      dial_addr: "",
-      dns_client: undefined,
-      in_auto_route: undefined,
-      out_auto_route: undefined,
-      ext: undefined,
-    } as BindDialerConfig,
+    defaultConfig: BindDialerDefault,
   },
   {
     type: "Adder",
@@ -381,7 +376,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
   },
   {
     type: "TLS",
-    label: "TLS",
+    label: "TLS Client",
     category: "outbound",
     defaultConfig: {
       host: null,
@@ -473,12 +468,12 @@ export const NODE_TYPES: NodeTypeConfig[] = [
 ];
 
 export interface BindDialerConfig {
-  bind_addr?: string;
-  dial_addr?: string;
-  dns_client?: DnsClientConfig;
-  in_auto_route?: InAutoRouteParams;
-  out_auto_route?: OutAutoRouteParams;
-  ext?: Ext;
+  bind_addr?: string | null;
+  dial_addr?: string | null;
+  dns_client?: DnsClientConfig | null;
+  in_auto_route?: InAutoRouteParams | null;
+  out_auto_route?: OutAutoRouteParams | null;
+  ext?: Ext | null;
 }
 
 export interface Listener {

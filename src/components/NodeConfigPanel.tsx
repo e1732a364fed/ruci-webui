@@ -56,7 +56,7 @@ const NodeConfigPanel = ({
 
     verifyNumberTypes(data, selectedNode.data.config);
 
-    console.log("data", data, "seldata", selectedNode.data);
+    // console.log("data", data, "seldata", selectedNode.data);
 
     onNodeUpdate({
       ...selectedNode,
@@ -68,7 +68,9 @@ const NodeConfigPanel = ({
   };
 
   const nodeTypeConfig = NODE_TYPES.find(
-    (nodeType) => nodeType.type === selectedNode.data.type
+    (nodeType) =>
+      nodeType.type === selectedNode.data.type &&
+      nodeType.category === selectedNode.data.category
   );
 
   const renderConfigFields = (
@@ -76,6 +78,7 @@ const NodeConfigPanel = ({
     defaultConfig: any,
     path: string = ""
   ) => {
+    // console.log("config", config, "defaultConfig", defaultConfig);
     return Object.entries(defaultConfig || {}).map(([key, defaultValue]) => {
       const currentPath = path ? `${path}.${key}` : key;
 
@@ -145,6 +148,30 @@ const NodeConfigPanel = ({
                   />
                 );
               }}
+            />
+          );
+        }
+
+        if (typeof defaultValue === "boolean") {
+          return (
+            <Controller
+              key={currentPath}
+              name={currentPath}
+              control={control}
+              defaultValue={_.get(config, key, defaultValue)}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={key}
+                  fullWidth
+                  margin="normal"
+                  size="small"
+                  type="checkbox"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    field.onChange(e.target.checked)
+                  }
+                />
+              )}
             />
           );
         }
