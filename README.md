@@ -48,6 +48,12 @@ bun lint
 
 # 预览构建结果
 bun preview
+
+#build html:
+
+bun build --experimental-html --experimental-css ./index.html --outdir=dist
+
+#then you can serve the dist folder by any simple http server, like python -m http.server
 ```
 
 ## License
