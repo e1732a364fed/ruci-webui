@@ -2,7 +2,7 @@
 name = "ruci-gui"
 version = "0.0.1"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["e1732a364fed"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -28,7 +28,7 @@ tauri-plugin-http = "2"
 tauri-plugin-fs = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "c9091852860e2a501ac78ce4c4f3ca9924184f2f", features = [
+ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "7902c0de9229e1d5af644bca9bfa0160c4319361", features = [
     "api_server",
     "file_server",
     "utils",
@@ -41,7 +41,7 @@ ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "c909185286
 ] }
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "c9091852860e2a501ac78ce4c4f3ca9924184f2f", features = [
+ruci-cmd = { git = "https://github.com/e1732a364fed/ruci.git", rev = "7902c0de9229e1d5af644bca9bfa0160c4319361", features = [
     "api_server",
     # "file_server",
     "utils",
