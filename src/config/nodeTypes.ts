@@ -130,8 +130,27 @@ export const HttpCommonDefault = {
   use_early_data: optional(false),
 };
 
+export const SoOptDefault = {
+  bind_to_device: optional("en0"),
+  so_mark: optional(255),
+  tproxy: optional(false),
+};
+
 export const NODE_TYPES: NodeTypeConfig[] = [
   // Inbound Nodes
+  new NodeTypeConfig("TproxyTcpResolver", "TproxyTcpResolver", "inbound", {
+    port: optional(0),
+    route_ipv6: optional(false),
+    proxy_local_udp_53: optional(false),
+    auto_route: optional(false),
+    auto_route_tcp: optional(false),
+    local_net4: optional(""),
+  }),
+  new NodeTypeConfig("TproxyUdpListener", "TproxyUdpListener", "inbound", {
+    listen_addr: "",
+    sockopt: SoOptDefault,
+    ext: ExtDefault,
+  }),
   new NodeTypeConfig("Echo", "Echo", "inbound", {}),
   new NodeTypeConfig("Stdio", "Stdio", "inbound", {
     ext: optional(ExtDefault),
@@ -205,7 +224,8 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     alpn: optional(["h2", "http/1.1"]),
     listen_addr: "0.0.0.0:443",
   }),
-  new NodeTypeConfig("Stack", "Stack", "inbound", {}),
+  new NodeTypeConfig("StackLwip", "StackLwip", "inbound", {}),
+  new NodeTypeConfig("StackSmoltcp", "StackSmoltcp", "inbound", {}),
   new NodeTypeConfig("SPE1", "SPE1", "inbound", {
     qa: optional([
       ["q1", "a1"],
