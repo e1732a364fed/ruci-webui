@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
+// import { useState, useCallback, useEffect } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -9,7 +10,7 @@ import ReactFlow, {
   addEdge,
   useNodesState,
   useEdgesState,
-  OnEdgesChange,
+  // OnEdgesChange,
   Viewport,
 } from "reactflow";
 import { Box, Paper, Typography } from "@mui/material";
@@ -39,7 +40,7 @@ const RouteEditor = ({
   outboundChains,
   initialEdges = [],
   onEdgesChange: onEdgesChangeCallback,
-  config,
+  // config,
   viewport,
   onViewportChange,
 }: RouteEditorProps) => {
@@ -94,7 +95,7 @@ const RouteEditor = ({
   );
 
   const onMoveEnd = useCallback(
-    (event: any, viewport: Viewport) => {
+    (_event: any, viewport: Viewport) => {
       onViewportChange?.(viewport);
     },
     [onViewportChange]

@@ -1,5 +1,7 @@
-import { memo, useState } from "react";
-import { Handle, Position, NodeProps } from "reactflow";
+import { memo } from "react";
+// import { memo, useState } from "react";
+import { NodeProps } from "reactflow";
+// import { Handle, Position, NodeProps } from "reactflow";
 import { Paper, Typography, Box } from "@mui/material";
 
 export interface AllViewNodeData {
@@ -15,28 +17,11 @@ export interface AllViewNodeData {
 }
 
 export const AllViewNode = memo(
-  ({ data, isConnectable, selected }: NodeProps<AllViewNodeData>) => {
-    // const [isHovered, setIsHovered] = useState(false);
-
+  // ({ data, isConnectable, selected }: NodeProps<AllViewNodeData>) => {
+  ({ data, selected }: NodeProps<AllViewNodeData>) => {
     return (
       <Paper
         elevation={3}
-        // onMouseEnter={() => {
-        //   // console.log("Mouse entered");
-        //   setIsHovered(true);
-        // }}
-        // onMouseLeave={() => {
-        //   // console.log("Mouse left");
-        //   setIsHovered(false);
-        // }}
-        // onMouseDown={(e) => {
-        //   console.log("Mouse down event:", {
-        //     button: e.button,
-        //     clientX: e.clientX,
-        //     clientY: e.clientY,
-        //     target: e.target,
-        //   });
-        // }}
         sx={{
           padding: 2,
           minWidth: 180,

@@ -3,7 +3,7 @@ import ReactFlow, {
   Background,
   Controls,
   Node,
-  Edge,
+  // Edge,
   NodeTypes,
   useNodesState,
   Viewport,
@@ -11,7 +11,7 @@ import ReactFlow, {
   applyNodeChanges,
 } from "reactflow";
 import { Paper } from "@mui/material";
-import { ChainNode, ChainNodeData } from "./nodes/ChainNode";
+import { ChainNodeData } from "./nodes/ChainNode";
 import { AllViewNode, AllViewNodeData } from "./nodes/AllViewNode";
 
 interface ChainViewProps {
@@ -165,7 +165,7 @@ export const ChainView = ({
   }, [initialNodes, setNodes]);
 
   const onMoveEnd = useCallback(
-    (event: any, viewport: Viewport) => {
+    (_event: any, viewport: Viewport) => {
       onViewportChange?.(viewport);
     },
     [onViewportChange]

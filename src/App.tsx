@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+// import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -32,13 +33,13 @@ import { AllViewNodeData } from "./components/nodes/AllViewNode";
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
 
-interface GroupNodeData {
-  type: "group";
-  category: "inbound" | "outbound";
-  chainTag: string;
-}
+// interface GroupNodeData {
+//   type: "group";
+//   category: "inbound" | "outbound";
+//   chainTag: string;
+// }
 
-type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
+// type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
 // type FlowNodeData = ChainNodeData | GroupNodeData;
 
 // const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
@@ -244,9 +245,9 @@ export default function App() {
     [inboundNodes, outboundNodes]
   );
 
-  const onRouteEdgesChange = useCallback((edges: Edge[]) => {
-    setRouteEdges(edges);
-  }, []);
+  // const onRouteEdgesChange = useCallback((edges: Edge[]) => {
+  //   setRouteEdges(edges);
+  // }, []);
 
   const getChainTags = () => {
     const inbounds: Record<string, Record<string, any>[]> = {};
