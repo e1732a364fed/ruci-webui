@@ -55,7 +55,7 @@ jobs:
         if: matrix.platform == 'ubuntu-20.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: Install frontend dependencies
         run: bun install
@@ -182,7 +182,7 @@ jobs:
 
       - name: Sign APK
         run: |
-          echo "export PATH=\$PATH:\$ANDROID_HOME/build-tools" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH"
           chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./
@@ -205,7 +205,7 @@ jobs:
 
       - name: Sign APK64
         run: |
-          echo "export PATH=\$PATH:\$ANDROID_HOME/build-tools" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH"
           chmod +x ./scripts/sign_apk.sh
           ./scripts/sign_apk.sh
           mv src-tauri/gen/android/app/build/outputs/apk/universal/release/ruci-gui-universal-release-signed.apk ./ruci-gui.apk
