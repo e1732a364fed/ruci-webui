@@ -24,12 +24,15 @@ pub fn run() {
         .setup(|_app| {
             // 在mac中默认双击 .app 程序 其工作目录为 根目录 "/", 这是不行的，因为要生成日志文件
 
-            let mh = homedir::my_home();
-            if let Ok(odir) = mh {
-                if let Some(dir) = odir {
-                    // 安卓这里会设为 "/data"
+            #[cfg(not(target_os = "ios"))]
+            {
+                let mh = homedir::my_home();
+                if let Ok(odir) = mh {
+                    if let Some(dir) = odir {
+                        // 安卓这里会设为 "/data"
 
-                    let _ = std::env::set_current_dir(dir);
+                        let _ = std::env::set_current_dir(dir);
+                    }
                 }
             }
 

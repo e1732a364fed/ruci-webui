@@ -68,13 +68,27 @@ src-tauri\target\release\bundle\msi
 安装 exe 在
 src-tauri\target\release\bundle\nsis
 
+### ios
+
+brew install cocoapods
+bun run tauri ios init
+bunx tauri icon
+bun run tauri ios dev
+
+release:
+打开 src-tauri/gen/apple 中的 xcode 项目，配置team, 然后：
+bun run tauri ios build
+会生成 ipa 文件
+
+不过ios中目前大概率会有异步问题，导致打开app后卡住。可能为 tauri 的bug
+
 ### 安卓
 
-rustup target add aarch64-linux-android
 
 配置 ANDROID_HOME, NDK_HOME, JAVA_HOME 环境变量(桌面环境安装 android studio后), 然后：
 
 bun run tauri android init
+bunx tauri icon
 
 debug:
 bun run tauri android dev 
@@ -83,8 +97,8 @@ bun run tauri android dev
 release:
 bun run tauri android build
 
-(默认会编译所有 cpu target 以生成 universal apk, 此时还要按提示安装其它 target , 如 
-armv7-linux-androideabi , i686-linux-android , x86_64-linux-android
+(默认会编译所有 cpu target 以生成 universal apk, 若未运行 android init, 此时还要按提示 rustup target add 其它 target , 一共有
+aarch64-linux-android, armv7-linux-androideabi , i686-linux-android , x86_64-linux-android
 )
 
 只编译 arm64:
