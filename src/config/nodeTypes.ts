@@ -242,7 +242,7 @@ export const NODE_TYPES: NodeTypeConfig[] = [
     alpn: optional(["h2", "http/1.1"]),
   }),
   new NodeTypeConfig("Embedder", "Embedder", "inbound", {
-    file_name: "file.lua",
+    file_name: "record.json",
   }),
 
   // Outbound Nodes
