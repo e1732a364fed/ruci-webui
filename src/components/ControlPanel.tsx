@@ -51,6 +51,17 @@ const ControlPanel = ({}: ControlPanelProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tabValue, setTabValue] = useState(0);
 
+  // New states for traffic and connections
+  const [downloadTraffic, setDownloadTraffic] = useState<string>("0");
+  const [uploadTraffic, setUploadTraffic] = useState<string>("0");
+  const [connectionCount, setConnectionCount] = useState<string>("0");
+  const [aliveConnectionCount, setAliveConnectionCount] = useState<string>("0");
+  const [lastConnectionId, setLastConnectionId] = useState<string>("0");
+  const [lastSuccessfulConnectionId, setLastSuccessfulConnectionId] =
+    useState<string>("0");
+  const [connectionInfo, setConnectionInfo] = useState<string>("");
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string>("");
+
   // New states for utility functions
   const [convertInputFileName, setConvertInputFileName] = useState<string>("");
   const [convertInputContent, setConvertInputContent] = useState<string>("");
@@ -337,6 +348,120 @@ const ControlPanel = ({}: ControlPanelProps) => {
     }
   };
 
+  // Traffic monitoring functions
+  const getTrafficStats = async () => {
+    setIsLoading(true);
+    try {
+      const [downloadResponse, uploadResponse] = await Promise.all([
+        fetch(`${apiUrl}/traffic/download`),
+        fetch(`${apiUrl}/traffic/upload`),
+      ]);
+
+      if (downloadResponse.ok && uploadResponse.ok) {
+        const downloadData = await downloadResponse.text();
+        const uploadData = await uploadResponse.text();
+        setDownloadTraffic(downloadData);
+        setUploadTraffic(uploadData);
+        setStatusMessage("流量统计获取成功");
+        setStatusError(false);
+      } else {
+        setStatusMessage("获取流量统计失败");
+        setStatusError(true);
+      }
+    } catch (error) {
+      setStatusMessage(
+        `获取流量统计错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      setStatusError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Connection monitoring functions
+  const getConnectionStats = async () => {
+    setIsLoading(true);
+    try {
+      const [
+        countResponse,
+        aliveCountResponse,
+        lastIdResponse,
+        lastOkResponse,
+      ] = await Promise.all([
+        fetch(`${apiUrl}/connections/count`),
+        fetch(`${apiUrl}/traffic/connections/alive/count`),
+        fetch(`${apiUrl}/traffic/connections/last/id`),
+        fetch(`${apiUrl}/connections/last/ok`),
+      ]);
+
+      if (
+        countResponse.ok &&
+        aliveCountResponse.ok &&
+        lastIdResponse.ok &&
+        lastOkResponse.ok
+      ) {
+        const count = await countResponse.text();
+        const aliveCount = await aliveCountResponse.text();
+        const lastId = await lastIdResponse.text();
+        const lastOkId = await lastOkResponse.text();
+
+        setConnectionCount(count);
+        setAliveConnectionCount(aliveCount);
+        setLastConnectionId(lastId);
+        setLastSuccessfulConnectionId(lastOkId);
+        setStatusMessage("连接统计获取成功");
+        setStatusError(false);
+      } else {
+        setStatusMessage("获取连接统计失败");
+        setStatusError(true);
+      }
+    } catch (error) {
+      setStatusMessage(
+        `获取连接统计错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      setStatusError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getConnectionInfo = async (cid: string) => {
+    if (!cid) {
+      setStatusMessage("请输入连接 ID");
+      setStatusError(true);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/connections/${cid}`);
+      if (response.ok) {
+        const data = await response.text();
+        setConnectionInfo(data);
+        setStatusMessage("连接信息获取成功");
+        setStatusError(false);
+      } else {
+        setStatusMessage(
+          `获取连接信息失败: ${response.status} ${response.statusText}`
+        );
+        setStatusError(true);
+      }
+    } catch (error) {
+      setStatusMessage(
+        `获取连接信息错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      setStatusError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 2, height: "100%" }}>
       <Typography variant="h5" gutterBottom>
@@ -349,6 +474,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
       >
         <Tab label="基本控制" />
         <Tab label="工具" />
+        <Tab label="监控" />
       </Tabs>
 
       <TabPanel value={tabValue} index={0}>
@@ -632,6 +758,136 @@ const ControlPanel = ({}: ControlPanelProps) => {
           {statusMessage && (
             <Alert severity={statusError ? "error" : "success"} sx={{ mt: 2 }}>
               {" "}
+              {statusMessage}
+            </Alert>
+          )}
+        </Paper>
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={2}>
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                流量监控
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">下载流量</Typography>
+                    <Typography variant="h4">
+                      {parseInt(downloadTraffic).toLocaleString()} 字节
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">上传流量</Typography>
+                    <Typography variant="h4">
+                      {parseInt(uploadTraffic).toLocaleString()} 字节
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+              <Button
+                variant="contained"
+                onClick={getTrafficStats}
+                disabled={isLoading}
+                sx={{ mt: 2 }}
+              >
+                刷新流量统计
+              </Button>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                连接监控
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">总连接数</Typography>
+                    <Typography variant="h4">{connectionCount}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">活跃连接数</Typography>
+                    <Typography variant="h4">{aliveConnectionCount}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">最新连接 ID</Typography>
+                    <Typography variant="h4">{lastConnectionId}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle1">最新成功连接 ID</Typography>
+                    <Typography variant="h4">
+                      {lastSuccessfulConnectionId}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+              <Button
+                variant="contained"
+                onClick={getConnectionStats}
+                disabled={isLoading}
+                sx={{ mt: 2 }}
+              >
+                刷新连接统计
+              </Button>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                连接详情查询
+              </Typography>
+              <TextField
+                fullWidth
+                label="连接 ID"
+                variant="outlined"
+                value={selectedConnectionId}
+                onChange={(e) => setSelectedConnectionId(e.target.value)}
+                margin="normal"
+              />
+              <Button
+                variant="contained"
+                onClick={() => getConnectionInfo(selectedConnectionId)}
+                disabled={isLoading}
+                sx={{ mt: 2 }}
+              >
+                查询连接信息
+              </Button>
+              {connectionInfo && (
+                <TextField
+                  fullWidth
+                  label="连接信息"
+                  variant="outlined"
+                  value={connectionInfo}
+                  multiline
+                  rows={4}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  margin="normal"
+                />
+              )}
+            </Grid>
+          </Grid>
+
+          {isLoading && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {statusMessage && (
+            <Alert severity={statusError ? "error" : "success"} sx={{ mt: 2 }}>
               {statusMessage}
             </Alert>
           )}
