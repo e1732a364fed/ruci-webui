@@ -41,29 +41,53 @@ export const ChainView = ({
 }: ChainViewProps) => {
   // 转换节点数据
   const initialNodes = useMemo(() => {
-    const chainGroups = new Map<string, Node<ChainNodeData>[]>();
+    const viewNodes: Node<AllViewNodeData>[] = [];
+    let inboundYOffset = 100;
+    let outboundYOffset = 100;
 
-    [...in_chainNodes, ...out_chainNodes].forEach((node) => {
-      if (node.data.chainTag) {
-        const group = chainGroups.get(node.data.chainTag) || [];
-        group.push(node);
-        chainGroups.set(node.data.chainTag, group);
+    // 按照 chainTag 对节点进行分组
+    const inboundChains = new Map<string, Node<ChainNodeData>[]>();
+    const outboundChains = new Map<string, Node<ChainNodeData>[]>();
+
+    // 首先找出所有的 chainTag
+    const inboundTags = new Set(
+      in_chainNodes.map((node) => node.data.chainTag)
+    );
+    const outboundTags = new Set(
+      out_chainNodes.map((node) => node.data.chainTag)
+    );
+
+    // 为每个 chainTag 构建完整的链
+    inboundTags.forEach((tag) => {
+      if (!tag) return;
+
+      // 找出属于这个 chain 的所有节点
+      const chainNodes = in_chainNodes.filter(
+        (node) => node.data.chainTag === tag
+      );
+      if (chainNodes.length > 0) {
+        inboundChains.set(tag, chainNodes);
       }
     });
 
-    const viewNodes: Node<AllViewNodeData>[] = [];
-    let yOffset = 100;
+    outboundTags.forEach((tag) => {
+      if (!tag) return;
 
-    chainGroups.forEach((chainGroupNodes, chainTag) => {
-      const category = chainGroupNodes[0].data.category;
-      const nodeId = `chain-${category}-${chainTag}`;
+      // 找出属于这个 chain 的所有节点
+      const chainNodes = out_chainNodes.filter(
+        (node) => node.data.chainTag === tag
+      );
+      if (chainNodes.length > 0) {
+        outboundChains.set(tag, chainNodes);
+      }
+    });
+
+    // 处理入站链
+    inboundChains.forEach((chainNodes, tag) => {
+      const nodeId = `chain-inbound-${tag}`;
       const savedPosition = nodePositions[nodeId];
-      const x = savedPosition
-        ? savedPosition.x
-        : category === "inbound"
-        ? 100
-        : 500;
-      const y = savedPosition ? savedPosition.y : yOffset;
+      const x = savedPosition ? savedPosition.x : 100;
+      const y = savedPosition ? savedPosition.y : inboundYOffset;
 
       viewNodes.push({
         id: nodeId,
@@ -71,9 +95,9 @@ export const ChainView = ({
         data: {
           type: "chain",
           label: "Chain",
-          category,
-          chainTag,
-          nodes: chainGroupNodes.map((node) => ({
+          category: "inbound",
+          chainTag: tag,
+          nodes: chainNodes.map((node) => ({
             type: node.data.type,
             label: node.data.label,
             config: node.data.config,
@@ -84,7 +108,37 @@ export const ChainView = ({
       });
 
       if (!savedPosition) {
-        yOffset += (chainGroupNodes.length + 2) * 120;
+        inboundYOffset += (chainNodes.length + 2) * 120;
+      }
+    });
+
+    // 处理出站链
+    outboundChains.forEach((chainNodes, tag) => {
+      const nodeId = `chain-outbound-${tag}`;
+      const savedPosition = nodePositions[nodeId];
+      const x = savedPosition ? savedPosition.x : 500;
+      const y = savedPosition ? savedPosition.y : outboundYOffset;
+
+      viewNodes.push({
+        id: nodeId,
+        type: "allViewNode",
+        data: {
+          type: "chain",
+          label: "Chain",
+          category: "outbound",
+          chainTag: tag,
+          nodes: chainNodes.map((node) => ({
+            type: node.data.type,
+            label: node.data.label,
+            config: node.data.config,
+          })),
+        },
+        position: { x, y },
+        draggable: true,
+      });
+
+      if (!savedPosition) {
+        outboundYOffset += (chainNodes.length + 2) * 120;
       }
     });
 
