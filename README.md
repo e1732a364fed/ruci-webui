@@ -56,6 +56,15 @@ bun build --experimental-html --experimental-css ./index.html --outdir=dist
 #then you can serve the dist folder by any simple http server, like python -m http.server
 ```
 
+## 代码
+
+程序的入口点是 App.tsx
+
+Map类型在 config/nodeTypes.ts 中的 NODE_TYPES 定义
+
+将Map信息转换为 json 显示的功能是在 App.tsx 中的 getNodeChain 函数
+
+
 ## License
 
 This project is released under Creative Commons CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.

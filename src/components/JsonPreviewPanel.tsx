@@ -6,7 +6,6 @@ interface JsonPreviewPanelProps {
     outbounds?: { tag: string; chain: Record<string, any>[] }[];
     tag_route: [string, string][];
     fallback_route: [string, string][];
-    rule_route: any;
   };
 }
 

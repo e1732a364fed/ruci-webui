@@ -10,6 +10,7 @@ export interface ChainNodeData {
   category: "inbound" | "outbound";
   chainTag: string;
   config: Record<string, any>;
+  is_first: boolean;
 }
 
 type ChainNodeProps = NodeProps<ChainNodeData>;

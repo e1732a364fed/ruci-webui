@@ -249,33 +249,42 @@ export default function App() {
   }, []);
 
   const getChainTags = () => {
-    const inboundTags = inboundNodes
-      .filter((node) => node.data.chainTag && !node.id.startsWith("group-"))
+    const inbounds = inboundNodes
+      .filter(
+        (node) =>
+          node.data.is_first &&
+          node.data.chainTag &&
+          !node.id.startsWith("group-")
+      )
       .map((node) => ({
         tag: node.data.chainTag,
         chain: getNodeChain(node, inboundNodes, inboundEdges),
       }));
 
-    const outboundTags = outboundNodes
-      .filter((node) => node.data.chainTag && !node.id.startsWith("group-"))
+    const outbounds = outboundNodes
+      .filter(
+        (node) =>
+          node.data.is_first &&
+          node.data.chainTag &&
+          !node.id.startsWith("group-")
+      )
       .map((node) => ({
         tag: node.data.chainTag,
         chain: getNodeChain(node, outboundNodes, outboundEdges),
       }));
 
     const config = {
-      inbounds: inboundTags,
-      outbounds: outboundTags,
+      inbounds: inbounds,
+      outbounds: outbounds,
       tag_route: routeEdges.map(
         (edge) => [edge.source, edge.target] as [string, string]
       ),
       fallback_route: [] as [string, string][],
-      rule_route: null,
     };
 
     return {
-      inboundTags,
-      outboundTags,
+      inbounds: inbounds,
+      outbounds: outbounds,
       config,
     };
   };
@@ -289,7 +298,11 @@ export default function App() {
     let currentNode: Node<ChainNodeData> | undefined = startNode;
 
     while (currentNode) {
-      chain.push({ [currentNode.data.type]: currentNode.data.config });
+      let jsonString = JSON.stringify(currentNode.data.config);
+      let x = JSON.parse(jsonString);
+      x.type = currentNode.data.type;
+      chain.push(x);
+
       const nextEdge = edges.find((edge) => edge.source === currentNode?.id);
       const nextNode = nodes.find((node) => node.id === nextEdge?.target);
       if (nextNode && !nextNode.id.startsWith("group-")) {
@@ -413,9 +426,11 @@ export default function App() {
           let prevNodeId: string | null = null;
           // 在这个 chain 中创建节点
           inbound.chain.forEach((item: any, nodeIndex: number) => {
-            const type = Object.keys(item)[0];
-            const config = item[type];
+            const type = item.type; //Object.keys(item)[0];
+            const config = item; //item[type];
             const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
+
+            let is_first = prevNodeId ? false : true;
 
             const node: Node<ChainNodeData> = {
               id: nodeId,
@@ -432,9 +447,9 @@ export default function App() {
                 category: "inbound",
                 chainTag: inbound.tag,
                 config,
+                is_first,
               },
             };
-            newInboundNodes.push(node);
 
             if (prevNodeId) {
               newInboundEdges.push({
@@ -444,6 +459,8 @@ export default function App() {
                 type: "chainEdge",
               });
             }
+
+            newInboundNodes.push(node);
             prevNodeId = nodeId;
           });
         });
@@ -461,9 +478,12 @@ export default function App() {
           let prevNodeId: string | null = null;
           // 在这个 chain 中创建节点
           outbound.chain.forEach((item: any, nodeIndex: number) => {
-            const type = Object.keys(item)[0];
-            const config = item[type];
+            const type = item.type; //const type = Object.keys(item)[0];
+            const config = item; //const config = item[type];
+
             const nodeId = `${type.toLowerCase()}-${Date.now()}-${chainIndex}-${nodeIndex}`;
+
+            let is_first = prevNodeId ? false : true;
 
             const node: Node<ChainNodeData> = {
               id: nodeId,
@@ -480,6 +500,7 @@ export default function App() {
                 category: "outbound",
                 chainTag: outbound.tag,
                 config,
+                is_first,
               },
             };
             newOutboundNodes.push(node);
@@ -692,10 +713,8 @@ export default function App() {
               <RouteEditor
                 initialEdges={routeEdges}
                 onEdgesChange={setRouteEdges}
-                inboundChains={getChainTags().inboundTags.map((tag) => tag.tag)}
-                outboundChains={getChainTags().outboundTags.map(
-                  (tag) => tag.tag
-                )}
+                inboundChains={getChainTags().inbounds.map((tag) => tag.tag)}
+                outboundChains={getChainTags().outbounds.map((tag) => tag.tag)}
                 config={getChainTags().config}
                 viewport={routeViewport}
                 onViewportChange={setRouteViewport}
@@ -725,7 +744,6 @@ export default function App() {
                 config={{
                   tag_route: getChainTags().config.tag_route,
                   fallback_route: [],
-                  rule_route: null,
                 }}
               />
             )}
