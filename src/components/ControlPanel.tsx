@@ -1,6 +1,6 @@
 import { fetch } from "@tauri-apps/plugin-http";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -85,7 +85,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
     useState<string>("0");
   const [connectionInfo, setConnectionInfo] = useState<string>("");
   const [selectedConnectionId, setSelectedConnectionId] = useState<string>("");
-  const [workingDir, setWorkingDir] = useState<string>("");
+  // const [workingDir, setWorkingDir] = useState<string>("");
 
   // New states for utility functions
   const [convertInputFileName, setConvertInputFileName] = useState<string>("");
@@ -498,6 +498,72 @@ const ControlPanel = ({}: ControlPanelProps) => {
     }
   };
 
+  // Add WebSocket connection function
+  const connectWebSocket = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.close();
+    }
+
+    const ws = new WebSocket("ws://127.0.0.1:40682/ws/logs");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setWsStatus("已连接");
+      setWsError(null);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        let s: string = event.data;
+        const log = JSON.parse(s); // timestamp, fields, target, level
+
+        let fields_without_msg = JSON.parse(JSON.stringify(log.fields));
+        delete fields_without_msg.message;
+
+        setLogs((prevLogs) => [
+          ...prevLogs,
+          {
+            level: log.level,
+            message: JSON.stringify(log.fields.message),
+            fields: JSON.stringify(fields_without_msg),
+            timestamp: log.timestamp,
+            target: log.target,
+          },
+        ]);
+      } catch {
+        setLogs((prevLogs) => [
+          ...prevLogs,
+          {
+            level: "INFO",
+            message: event.data,
+            fields: "",
+            timestamp: new Date().toISOString(),
+            target: "unknown",
+          },
+        ]);
+      }
+    };
+
+    ws.onclose = () => {
+      setWsStatus("已断开");
+    };
+
+    ws.onerror = (error) => {
+      setWsError(`连接错误: ${error}`);
+      setWsStatus("错误");
+    };
+  };
+
+  // Add cleanup function
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  /*
   const getWorkingDir = async () => {
     setIsLoading(true);
     try {
@@ -524,7 +590,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
       setIsLoading(false);
     }
   };
-
+*/
   return (
     <Box sx={{ p: 2, height: "100%" }}>
       <Typography variant="h5" gutterBottom>
