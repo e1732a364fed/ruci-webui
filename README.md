@@ -14,6 +14,13 @@ Ruci WebUI Tauri 是一个基于 React 和 TypeScript 的现代化 Web 用户界
 
 ![screenshot](screenshot.png)
 
+## 使用说明
+
+从 github release 上下载的 mac的 dmg中的 app 打开可能报错说damaged, 此时要运行
+
+xattr -c ruci-gui.app
+
+
 ## 功能特点
 
 - 使用 Vite 构建，支持快速的开发体验和热模块替换（HMR）
@@ -62,6 +69,7 @@ bun run tauri build
 src-tauri/target/release/bundle/macos
 dmg 在
 src-tauri/target/release/bundle/dmg
+
 
 windows 的 
 可执行文件在
