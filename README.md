@@ -63,10 +63,18 @@ src-tauri/target/release/bundle/macos
 dmg 在
 src-tauri/target/release/bundle/dmg
 
-windows 的 msi 在
+windows 的 
+可执行文件在
+src-tauri\target\release\ruci_gui.exe
+msi 在
 src-tauri\target\release\bundle\msi
 安装 exe 在
 src-tauri\target\release\bundle\nsis
+
+linux 会生成多个bundle,在
+ src-tauri\target\release\bundle 下的
+ appimage, deb, rpm 这三个文件夹中
+
 
 ### ios
 
@@ -115,7 +123,7 @@ apksigner sign --ks-key-alias alias1 --ks key1 app-universal-release-unsigned.ap
 
 the password for "key1" is six 0.
 
-提供了 scripts/sign_apk.sh, 它签名后，自动将其改名为 app-universal-release-signed.apk.
+提供了 scripts/sign_apk.sh, 它签名后，自动将其改名为 ruci-gui-universal-release-signed.apk.
 
 
 # github release 发布流程
