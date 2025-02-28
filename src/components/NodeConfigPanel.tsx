@@ -1,10 +1,9 @@
 import { Node } from "reactflow";
-import { Typography, TextField, Box } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { Typography, TextField, Box, Button } from "@mui/material";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { ChainNodeData } from "./nodes/ChainNode";
 import { NODE_TYPES } from "../config/nodeTypes";
-
-// import { BindDialerConfig, DnsClientConfig } from "../config/nodeTypes";
+import { get, set } from "lodash";
 
 interface NodeConfigPanelProps {
   selectedNode: Node<ChainNodeData> | null;
@@ -15,8 +14,9 @@ const NodeConfigPanel = ({
   selectedNode,
   onNodeUpdate,
 }: NodeConfigPanelProps) => {
-  const { register, handleSubmit } = useForm();
-
+  const { control, handleSubmit } = useForm();
+  const { watch } = useForm();
+  
   if (!selectedNode) {
     return (
       <Typography variant="body1" align="center">
@@ -24,7 +24,7 @@ const NodeConfigPanel = ({
       </Typography>
     );
   }
-
+  
   const onSubmit = (data: any) => {
     onNodeUpdate({
       ...selectedNode,
@@ -39,46 +39,64 @@ const NodeConfigPanel = ({
     (nodeType) => nodeType.type === selectedNode.data.type
   );
 
-  const renderConfigFields = (config: any, default_config: any) => {
-    return Object.entries(default_config || {}).map(
-      ([default_key, default_value]) => {
-        if (typeof default_value === "object" && default_value !== null) {
-          if (default_value instanceof Array) {
-            return (
-              <Box
-                key={default_key}
-                sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
-              >
-                <Typography variant="subtitle2">{default_key}</Typography>
-                array
-              </Box>
-            );
-          } else {
-            return (
-              <Box
-                key={default_key}
-                sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
-              >
-                <Typography variant="subtitle2">{default_key}</Typography>
-                {renderConfigFields(default_value, default_config[default_key])}
-              </Box>
-            );
-          }
+  const renderConfigFields = (
+    config: any,
+    defaultConfig: any,
+    path: string = ""
+  ) => {
+    return Object.entries(defaultConfig || {}).map(([key, defaultValue]) => {
+      const currentPath = path ? `${path}.${key}` : key;
+
+      if (typeof defaultValue === "object" && defaultValue !== null) {
+        if (Array.isArray(defaultValue)) {
+          return (
+            <Box
+              key={currentPath}
+              sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+            >
+              <ArrayField
+                name={currentPath}
+                control={control}
+                defaultValue={get(config, key, [])}
+                label={key}
+              />
+            </Box>
+          );
         } else {
           return (
-            <TextField
-              key={default_key}
-              label={default_key}
-              defaultValue={default_value}
-              {...register(default_key)}
-              fullWidth
-              margin="normal"
-              size="small"
-            />
+            <Box
+              key={currentPath}
+              sx={{ margin: 2, padding: 2, border: "1px solid #ccc" }}
+            >
+              <Typography variant="subtitle2">{key}</Typography>
+              {renderConfigFields(
+                get(config, key, {}),
+                defaultValue,
+                currentPath
+              )}
+            </Box>
           );
         }
+      } else {
+        return (
+          <Controller
+            key={currentPath}
+            name={currentPath}
+            control={control}
+            defaultValue={get(config, key, defaultValue)}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label={key}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            )}
+          />
+        );
       }
-    );
+    });
   };
 
   return (
@@ -95,9 +113,60 @@ const NodeConfigPanel = ({
             selectedNode.data.config,
             nodeTypeConfig.defaultConfig
           )}
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ mt: 2 }}
+          fullWidth
+        >
+          Save Changes
+        </Button>
       </form>
     </Box>
   );
 };
 
+// 新增的ArrayField组件
+const ArrayField = ({ control, name, defaultValue, label }: any) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name,
+  });
+
+  return (
+    <div>
+      <Typography variant="subtitle2">{label}</Typography>
+      {fields.map((field, index) => (
+        <Box
+          key={field.id}
+          sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1 }}
+        >
+          <Controller
+            name={`${name}.${index}`}
+            control={control}
+            defaultValue={defaultValue[index] || ""}
+            render={({ field }) => (
+              <TextField {...field} fullWidth size="small" />
+            )}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => remove(index)}
+          >
+            Delete
+          </Button>
+        </Box>
+      ))}
+      <Button
+        variant="contained"
+        size="small"
+        onClick={() => append("")}
+        sx={{ mt: 1 }}
+      >
+        Add Item
+      </Button>
+    </div>
+  );
+};
 export default NodeConfigPanel;
