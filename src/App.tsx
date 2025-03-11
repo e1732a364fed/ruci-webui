@@ -84,6 +84,7 @@ export default function App() {
   const [inboundEdges, setInboundEdges] = useState<Edge[]>([]);
   const [outboundEdges, setOutboundEdges] = useState<Edge[]>([]);
   const [routeEdges, setRouteEdges] = useState<Edge[]>([]);
+  const [routeConfig, setRouteConfig] = useState<Record<string, any>>([]);
   const [selectedNode, setSelectedNode] = useState<Node<ChainNodeData> | null>(
     null
   );
@@ -312,7 +313,7 @@ export default function App() {
         tag_route: routeEdges.map(
           (edge) => [edge.source, edge.target] as [string, string]
         ),
-        fallback_route: [] as [string, string][],
+        ...routeConfig,
       },
     };
 
@@ -606,17 +607,21 @@ export default function App() {
         );
       }
 
-      // Import route edges
-      if (importData.tag_route) {
-        const newRouteEdges: Edge[] = importData.tag_route.map(
-          ([source, target]: [string, string]) => ({
-            id: `${source}-${target}`,
-            source,
-            target,
-            type: "default",
-          })
-        );
-        setRouteEdges(newRouteEdges);
+      if (importData.routes) {
+        setRouteConfig(importData.routes);
+
+        // Import route edges
+        if (importData.routes.tag_route) {
+          const newRouteEdges: Edge[] = importData.routes.tag_route.map(
+            ([source, target]: [string, string]) => ({
+              id: `${source}-${target}`,
+              source,
+              target,
+              type: "default",
+            })
+          );
+          setRouteEdges(newRouteEdges);
+        }
       }
     } catch (error) {
       console.error("Failed to import config JSON:", error);
