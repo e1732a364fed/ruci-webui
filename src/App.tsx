@@ -51,12 +51,23 @@ import InfoIcon from "@mui/icons-material/Info";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { MenuBook } from "@mui/icons-material";
-import ManualPanel from "./components/ManualPanel";
 
 type EditorView = "all" | "inbound" | "outbound";
 type EditorTab = "chain" | "route";
-type SidebarView = "nodeEditor" | "info" | "controlPanel" | "manual";
+type SidebarView = "nodeEditor" | "info" | "controlPanel";
+
+// interface GroupNodeData {
+//   type: "group";
+//   category: "inbound" | "outbound";
+//   chainTag: string;
+// }
+
+// type FlowNode = Node<ChainNodeData> | Node<GroupNodeData>;
+// type FlowNodeData = ChainNodeData | GroupNodeData;
+
+// const isChainNode = (node: FlowNode): node is Node<ChainNodeData> => {
+//   return !node.id.startsWith("group-");
+// };
 
 const nodeTypes: NodeTypes = {
   chainNode: ChainNode,
@@ -387,35 +398,6 @@ export default function App() {
     setChainNodePositions(positions);
   }, []);
 
-  const write_file = (file_name: string, content: any, type: string) => {
-    const isTauri = "__TAURI_INTERNALS__" in window;
-
-    let content2 = type == "json" ? JSON.stringify(content, null, 2) : content;
-    let type2 = type == "json" ? "application/json" : "text/plain";
-
-    if (isTauri) {
-      import("@tauri-apps/plugin-fs").then(
-        async ({ create, BaseDirectory }) => {
-          const file = await create(file_name, {
-            baseDir: BaseDirectory.Download,
-          });
-          await file.write(new TextEncoder().encode(content2));
-          await file.close();
-        }
-      );
-    } else {
-      const blob = new Blob([content2], {
-        type: type2,
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file_name;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  };
-
   const handleExportJson = useCallback(() => {
     const exportData = {
       inboundNodes,
@@ -426,7 +408,15 @@ export default function App() {
       chainNodePositions,
     };
 
-    write_file("flow-export.json", exportData, "json");
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "flow-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
   }, [
     inboundNodes,
     outboundNodes,
@@ -447,9 +437,16 @@ export default function App() {
       outbounds: config.outbounds,
       routes: config.routes,
     };
-    const file_name = "config-export.json";
 
-    write_file(file_name, exportData, "json");
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
   }, [inboundNodes, outboundNodes, inboundEdges, outboundEdges, routeEdges]);
 
   const handleImportJson = useCallback((jsonString: string) => {
@@ -767,9 +764,7 @@ export default function App() {
     if (currentSidebarView === "controlPanel") {
       return <ControlPanel />;
     }
-    if (currentSidebarView === "manual") {
-      return <ManualPanel />;
-    }
+
     return (
       <>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -899,16 +894,6 @@ export default function App() {
               <AccountTreeIcon />
             </ListItemIcon>
             <ListItemText primary="Node Editor" />
-          </ListItemButton>
-
-          <ListItemButton
-            selected={currentSidebarView === "manual"}
-            onClick={() => setSidebarView("manual")}
-          >
-            <ListItemIcon>
-              <MenuBook />
-            </ListItemIcon>
-            <ListItemText primary="Manual" />
           </ListItemButton>
         </List>
       </Drawer>
