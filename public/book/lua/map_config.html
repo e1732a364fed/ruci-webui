@@ -1,0 +1,695 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>MapConfig - ruci_manual</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../theme/pagetoc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> 欢迎</a></li><li class="chapter-item expanded "><a href="../get_started.html"><strong aria-hidden="true">2.</strong> 入门</a></li><li class="chapter-item expanded "><a href="../app/cmd.html"><strong aria-hidden="true">3.</strong> ruci-cmd程序</a></li><li class="chapter-item expanded "><a href="../app/subscribe.html"><strong aria-hidden="true">4.</strong> 订阅</a></li><li class="chapter-item expanded "><a href="../lua/lua.html"><strong aria-hidden="true">5.</strong> lua配置</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../lua/config_intro.html"><strong aria-hidden="true">5.1.</strong> Config入门</a></li><li class="chapter-item expanded "><a href="../lua/map_config.html" class="active"><strong aria-hidden="true">5.2.</strong> MapConfig</a></li><li class="chapter-item expanded "><a href="../lua/route_config.html"><strong aria-hidden="true">5.3.</strong> Route Config</a></li><li class="chapter-item expanded "><a href="../lua/infinite.html"><strong aria-hidden="true">5.4.</strong> Infinite</a></li></ol></li><li class="chapter-item expanded "><a href="../lua/user_defined_protocol.html"><strong aria-hidden="true">6.</strong> lua自定义协议</a></li><li class="chapter-item expanded "><a href="../json.html"><strong aria-hidden="true">7.</strong> json配置</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">ruci_manual</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/e1732a364fed/ruci/" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <p>开发相关：参考 rucimp/src/modes/chain/config/mod.rs</p>
+<p>开发相关：因为 代码实现方式不同，有些功能相近的 Map的Config是独立的</p>
+<h1 id="说明"><a class="header" href="#说明">说明</a></h1>
+<p>在 Map说明的 首部标有 in, out 或 in/out 字样，表明可用于 InMapConfig 还是 OutMapConfig</p>
+<p>配置的基本写法为 <code>{type = &quot;Name&quot;}</code>，内部还可能有其它项。</p>
+<p>没有任何示例的Map 意为着其写法仅为 <code>{type = &quot;Name&quot;}</code>，如 <code>{ type = &quot;Echo&quot;}</code> , <code>{type = &quot;Blackhole&quot;}</code>,  <code>{type = &quot;Direct&quot;}</code></p>
+<p>标有 <code> --optional</code> 的项为可选项。</p>
+<h2 id="_addr-的写法"><a class="header" href="#_addr-的写法"><code>_addr</code> 的写法</a></h2>
+<p>一些项，如 bind_addr，dial_addr, listen_addr, fixed_target_addr 等，其写法都是相同的。如下每一行都是合法的示例</p>
+<pre><code>fake.com:80
+[::1]:30800
+unix://file1
+udp://127.0.0.1:20800
+tcp://0.0.0.0:80
+ip://10.0.0.1:24#utun321
+</code></pre>
+<p><code>{scheme}://</code>没给出时，默认使用 tcp. unix 表示 unix domain socket</p>
+<p>方括号括起的表示 ipv6</p>
+<p>ip 示例中的 24 表示 子网掩码的CIDR表示， utun321 为指定要创建的 tun网卡 名称</p>
+<h1 id="入口出口-map"><a class="header" href="#入口出口-map">入口、出口 Map</a></h1>
+<h2 id="blackhole"><a class="header" href="#blackhole">Blackhole</a></h2>
+<p>out</p>
+<h2 id="direct"><a class="header" href="#direct">Direct</a></h2>
+<p>out</p>
+<pre><code class="language-lua">type = &quot;Direct&quot;
+</code></pre>
+<p>可选项为 dns_client </p>
+<pre><code class="language-lua">{
+    type = &quot;Direct&quot;,
+    dns_client = {
+        --...
+    }--optional
+}
+</code></pre>
+<p>见<a href="#dnsclient">DnsClient</a></p>
+<h3 id="optdirect"><a class="header" href="#optdirect">OptDirect</a></h3>
+<p>in</p>
+<p>OptDirect 的出现是 为了给 Direct 添加 sockopt 选项。使用 tproxy 要用该Map</p>
+<pre><code class="language-lua">{
+    type = &quot;OptDirect&quot;,
+    sockopt= {
+        --...
+    },
+    more_num_of_files= false, -- 可选
+    dns_client = {}, -- 可选
+}
+</code></pre>
+<p>见<a href="#sockopt">SockOpt</a></p>
+<p>见<a href="#dnsclient">DnsClient</a></p>
+<p>more_num_of_files 为 true时，在 linux 上，程序将自动调整 系统设置,
+防止 出现 num_of_files 不够的问题 ( 在 tproxy 等情况下尤为严重)</p>
+<h2 id="binddialer"><a class="header" href="#binddialer">BindDialer</a></h2>
+<p>in</p>
+<p>BindDialer 是 一个 既可以 Bind 又可以 Dial 的配置</p>
+<p>Bind 用于 udp 和 ip, dial 则用于 udp,tcp,uds(unix domain socket)</p>
+<p>BindDialer 中所有项都是可选的，但 bind_addr 或 dial_addr 中至少有一个要设置</p>
+<pre><code>对于 ip, bind_addr 须提供, 否则将报错
+
+对于 tcp/udp, 如果 bind_addr 不提供, 将采用 随机端口
+
+对于 uds, bind_addr 无意义
+
+对于 ip, dial_addr 无意义
+
+对于 tcp/uds, dial_addr 须提供，否则将报错
+</code></pre>
+<pre><code class="language-lua">{
+    type = &quot;BindDialer&quot;,
+
+    bind_addr = &quot;&quot;,
+    dial_addr = &quot;&quot;,
+
+    dns_client= {..} --optional
+
+    in_auto_route= {..},  --optional
+
+    out_auto_route = {..},  --optional
+
+    ext= {..}, --optional
+}
+</code></pre>
+<p>见<a href="#dnsclient">DnsClient</a></p>
+<p>见<a href="#ext">Ext</a></p>
+<p>in_auto_route 用于 tun</p>
+<pre><code class="language-lua"> in_auto_route = {
+    tun_dev_name = &quot;utun321&quot;,
+    tun_gateway = &quot;10.0.0.1&quot;,
+    router_ip = &quot;192.168.0.1&quot;,
+    original_dev_name = &quot;enp0s1&quot;, -- windows/macos 可不填 original_dev_name, linux 要填 original_dev_name
+    --direct_list = { &quot;192.168.0.204&quot; }, -- 服务端的ip要直连
+    dns_list = { &quot;114.114.114.114&quot; }
+}
+
+</code></pre>
+<p>out_auto_route 只用于 ip转发 (从本地的tun 转发到 服务器上的 tun)</p>
+<pre><code class="language-lua">out_auto_route = {
+    tun_dev_name = &quot;utun321&quot;,
+    original_dev_name = &quot;enp0s1&quot;, --wlp3s0
+    router_ip = &quot;192.168.0.1&quot;,
+}
+</code></pre>
+<p>ip 拨号是建立一个虚拟网卡，一般为 tun. 这个一般可以用于配合 tcp/ip stack (smoltcp/lwip) 进行全局路由使用，详情
+见 local.lua 中的对应示例，以及 <a href="https://github.com/e1732a364fed/ruci/blob/tokio/doc/notes.md#tun%E6%A8%A1%E5%BC%8F%E7%9A%84%E4%B8%80%E4%BA%9B%E5%AE%9E%E6%B5%8B%E4%BF%A1%E6%81%AF">这里</a></p>
+<h3 id="optdialer"><a class="header" href="#optdialer">OptDialer</a></h3>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;OptDialer&quot;,
+    dial_addr= &quot;&quot;,
+    sockopt= {}, --optional
+    dns_client = {}, --optional
+}
+</code></pre>
+<p>见<a href="#dnsclient">DnsClient</a></p>
+<p>见<a href="#sockopt">SockOpt</a></p>
+<h2 id="listener"><a class="header" href="#listener">Listener</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;Listener&quot;,
+    listen_addr =&quot;&quot;,
+    ext={},--optional
+}
+</code></pre>
+<p>见<a href="#ext">Ext</a></p>
+<h2 id="tcpoptlistener"><a class="header" href="#tcpoptlistener">TcpOptListener</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;TcpOptListener&quot;,
+    listen_addr =&quot;&quot;,
+    sockopt={},
+    ext={},--optional
+}
+</code></pre>
+<p>见<a href="#sockopt">SockOpt</a></p>
+<p>见<a href="#ext">Ext</a></p>
+<h2 id="stdio"><a class="header" href="#stdio">Stdio</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{
+    type = &quot;Stdio&quot;,
+    write_mode = &quot;Bytes&quot;, --optional
+    ext={},--optional
+}
+</code></pre>
+<p>默认的 write_mode 为 <code>UTF8</code>, 可以用 <code>Bytes</code> 模式来观察16进制数据</p>
+<p>见<a href="#ext">Ext</a></p>
+<h2 id="fileio"><a class="header" href="#fileio">Fileio</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{
+    type = &quot;Fileio&quot;,
+    i=&quot;&quot;,
+    o=&quot;&quot;,
+    sleep_interval=1, --optional, 正整数
+    bytes_per_turn=100, --optional, 正整数
+    ext={}, --optional
+}
+</code></pre>
+<p>i 表示 输入文件名，o表示输出文件名。</p>
+<p>i为自己预先定义好的文件，o则是一个给出的文件名，其内容只有通讯后才知道。</p>
+<p>sleep_interval 和 bytes_per_turn 两项配置用于设置发送信息的速率。</p>
+<p>见<a href="#ext">Ext</a></p>
+<h2 id="tproxy"><a class="header" href="#tproxy">Tproxy</a></h2>
+<p>in</p>
+<p>linux only</p>
+<p>tproxy 的配置要复杂一些，要分 tcp 和 udp 两部分配置，自动路由的配置则是在 TproxyTcpResolver 中设置的。</p>
+<pre><code class="language-lua">local tproxy_tcp_listen = {
+    type = &quot;TcpOptListener&quot;,
+    listen_addr = &quot;0.0.0.0:12345&quot;,
+    sockopt = {
+        tproxy = true,
+    }
+}
+
+local tproxy_listen_tcp_chain = {
+    tproxy_tcp_listen, {
+        type = &quot;TproxyTcpResolver&quot;,
+        port = 12345,
+        --auto_route_tcp = true, -- only set route for tcp
+        auto_route = true,         -- auto_route will set route for both tcp and udp at the appointed port
+
+        route_ipv6 = true,         -- 如果为true, 则  也会 对 ipv6 网段执行 自动路由
+
+        proxy_local_udp_53 = true, -- 如果为true, 则 udp 53 端口不会直连, 而是会流经 tproxy
+
+        -- local_net4 = &quot;192.168.0.0/16&quot; -- 直连 ipv4 局域网段 不给出时, 默认即为 192.168.0.0/16
+        
+    }
+}
+
+
+local tproxy_udp_listen = {
+    type = &quot;TproxyUdpListener&quot;,
+    listen_addr = &quot;udp://0.0.0.0:12345&quot;,
+    sockopt = {
+        tproxy = true,
+    }
+    
+}
+
+local tproxy_listen_inbounds = { 
+    listen_tproxy_tcp = tproxy_listen_tcp_chain,
+    listen_tproxy_udp = { tproxy_udp_listen },
+}
+
+</code></pre>
+<h3 id="tproxyudplistener"><a class="header" href="#tproxyudplistener">TproxyUdpListener</a></h3>
+<pre><code class="language-lua">{
+    type = &quot;TproxyUdpListener&quot;,
+    listen_addr=&quot;&quot;,
+    sockopt={},
+    ext={}, --optional
+}
+</code></pre>
+<p>见<a href="#sockopt">SockOpt</a></p>
+<p>见<a href="#ext">Ext</a></p>
+<h3 id="tproxytcpresolver"><a class="header" href="#tproxytcpresolver">TproxyTcpResolver</a></h3>
+<p>rucimp/src/map/tproxy/route/mod.rs</p>
+<pre><code class="language-lua">{
+    type = &quot;TproxyTcpResolver&quot;,
+     -- tproxy 监听的端口, 默认为 12345
+    port=12345, --  正整数
+    route_ipv6= false,
+    proxy_local_udp_53=false,
+
+    --局域网段, 默认为 192.168.0.0/16
+    local_net4 = &quot;192.168.0.0/16&quot;,
+    auto_route = true,
+    auto_route_tcp=false,
+}
+</code></pre>
+<p>所有项都是可选的</p>
+<p>auto_route 为 true 时， 若 auto_route_tcp 也为 true, 则 自动路由过程 只会为 tcp 设置路由,
+udp 将不被路由到tproxy中.</p>
+<h2 id="stacklwip"><a class="header" href="#stacklwip">StackLwip</a></h2>
+<p>in</p>
+<h2 id=""><a class="header" href="#"></a></h2>
+<h1 id="网络协议-map"><a class="header" href="#网络协议-map">网络协议 Map</a></h1>
+<p>in/out</p>
+<h2 id="简单代理协议-socks5httpsocks5http"><a class="header" href="#简单代理协议-socks5httpsocks5http">简单代理协议 Socks5,Http,Socks5Http</a></h2>
+<pre><code class="language-lua">type = &quot;Socks5Http&quot;
+type = &quot;Socks5&quot;
+type = &quot;Http&quot;
+</code></pre>
+<p>可选用户密码组合, 内容均为可选</p>
+<pre><code class="language-lua">{
+    type = &quot;Socks5&quot;, -- Http
+    userpass: &quot;username1 password1&quot;,
+    more: { &quot;username2 password2&quot;, &quot;username3 password3&quot;},
+}
+</code></pre>
+<p>字符串中 按whitespace 分割</p>
+<h2 id="trojan"><a class="header" href="#trojan">Trojan</a></h2>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;Trojan&quot;, 
+    password: &quot;password1&quot;,
+    more: { &quot;password2&quot;, &quot;password3&quot;},
+}
+</code></pre>
+<p>同上。password 以明文书写。</p>
+<p>out:</p>
+<pre><code class="language-lua"> { type = &quot;Trojan&quot;, password = &quot;mypassword&quot; }
+</code></pre>
+<h2 id="tls"><a class="header" href="#tls">TLS</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;TLS&quot;, 
+    cert=&quot;c.crt&quot;,
+    key=&quot;k.key&quot;,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},--optional
+}
+</code></pre>
+<p>out:</p>
+<pre><code class="language-lua">{
+    type = &quot;TLS&quot;, 
+    host=&quot;www.myhost.com&quot;,
+    insecure=false,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},--optional
+}
+</code></pre>
+<p>如果任意一方的alpn 没给出, 则连接都通过；如果两方 alpn 都给出, 则只有匹配了才通过</p>
+<h2 id="nativetls"><a class="header" href="#nativetls">NativeTLS</a></h2>
+<p>同上</p>
+<p>NativeTLS 使用 系统自己的 tls栈，这样就没有 rust 特征了。</p>
+<h2 id="http2"><a class="header" href="#http2">http2</a></h2>
+<p>服务端用 H2, 客户端用 H2Single 或 H2Mux，一般用 H2Mux 以使用 多路复用</p>
+<p>grpc 也是在 http2 配置中设置</p>
+<h3 id="h2"><a class="header" href="#h2">H2</a></h3>
+<p>目前 h2 的三种Map 的 Config 格式 是一样的</p>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;H2&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+}
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<h3 id="h2single"><a class="header" href="#h2single">H2Single</a></h3>
+<p>out</p>
+<pre><code class="language-lua">{
+    type = &quot;H2Single&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+},
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<h3 id="h2mux"><a class="header" href="#h2mux">H2Mux</a></h3>
+<p>out</p>
+<pre><code class="language-lua">{
+    type = &quot;H2Mux&quot;, 
+    is_grpc=false,--optional
+    http_config={},--optional
+},
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<h2 id="websocket"><a class="header" href="#websocket">WebSocket</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<pre><code class="language-lua">{
+    type = &quot;WebSocket&quot;, 
+    http_config = {
+       --...
+    } --optional
+}
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<p>out:</p>
+<pre><code class="language-lua">{
+    --... optional
+}
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<h2 id="quic"><a class="header" href="#quic">Quic</a></h2>
+<p>in/out</p>
+<p>in:</p>
+<p>quic 的 监听端 是直接接管 udp 层的, listen_addr 在这里指定, 而不额外用 Listener</p>
+<pre><code class="language-lua">{
+    type = &quot;Quic&quot;, 
+    key=&quot;&quot;,
+    cert=&quot;&quot;,
+    listen_addr=&quot;&quot;,
+    alpn = { &quot;h2&quot;, &quot;h3&quot;},
+}
+</code></pre>
+<p>out:</p>
+<pre><code class="language-lua"> {
+    type = &quot;Quic&quot;, 
+    server_addr=&quot;&quot;,
+    server_name=&quot;www.mytest.com&quot;,
+    cert=&quot;&quot;,--optional
+    alpn = { &quot;h2&quot;, &quot;h3&quot;}, --要明确指定 alpn
+    insecure=true,--optional
+}
+</code></pre>
+<p>须给出 server_name (域名),
+且 若 insecure 为 false, 须为 证书中所写的 CN 或 Subject Alternative Name;
+ruci 提供的 test2.crt中的 Subject Alternative Name 为 www.mytest.com 和 localhost,</p>
+<p>cert：可给出 服务端的 证书, 这样就算 insecure = false 也通过验证
+证书须为 真证书, 或真fullchain 证书, 或自签的根证书</p>
+<h2 id="spe1-steganography-protocol-exmaple1"><a class="header" href="#spe1-steganography-protocol-exmaple1">SPE1: Steganography Protocol Exmaple1</a></h2>
+<p>隐写示例协议1</p>
+<pre><code class="language-lua">{ 
+    type = &quot;SPE1&quot;, 
+    qa = { { &quot;q1&quot;, &quot;a1&quot; }, { &quot;q2&quot;, &quot;a2&quot; } } 
+}
+</code></pre>
+<p>qa 中要为 2的偶数次幂个 问答对，问答的内容任意填。但是内容越真实，隐写效果越好。</p>
+<p>如果不给出qa，则协议会使用自己生成的问答对。</p>
+<pre><code class="language-lua"> { type = &quot;SPE1&quot;}
+</code></pre>
+<h2 id="lua-lua自定义协议"><a class="header" href="#lua-lua自定义协议">Lua: lua自定义协议</a></h2>
+<pre><code class="language-lua">{ type = &quot;Lua&quot;, file_name = &quot;lua_protocol_e1.lua&quot;, handshake_function = &quot;Handshake2&quot; }
+</code></pre>
+<p>lua自定义协议 的写法是高级用法，见  <a href="user_defined_protocol.html">lua自定义协议</a></p>
+<h1 id="辅助-map"><a class="header" href="#辅助-map">辅助 Map</a></h1>
+<h2 id="echo"><a class="header" href="#echo">Echo</a></h2>
+<p>in/out</p>
+<h2 id="adder"><a class="header" href="#adder">Adder</a></h2>
+<p>in/out</p>
+<pre><code class="language-lua">{type = &quot;Adder&quot;, value=3}
+</code></pre>
+<p>给 输出 的信息 每字节都加 给定的数值。比如 输入abc, value=1, 则输出为 bcd</p>
+<h2 id="counter"><a class="header" href="#counter">Counter</a></h2>
+<p>in/out</p>
+<h2 id="httpfilter"><a class="header" href="#httpfilter">HttpFilter</a></h2>
+<p>in</p>
+<pre><code class="language-lua">{
+    type = &quot;HttpFilter&quot;,
+    --...
+}
+</code></pre>
+<p>见 <a href="#httpcommonconfig">HttpCommonConfig</a></p>
+<h1 id="子块"><a class="header" href="#子块">子块</a></h1>
+<h2 id="dnsclient"><a class="header" href="#dnsclient">DnsClient</a></h2>
+<pre><code class="language-lua">dns_client = {
+    dns_server_list = { { &quot;127.0.0.1:20800&quot;, &quot;udp&quot; } }, -- 8.8.8.8:53
+    ip_strategy = &quot;Ipv4Only&quot;, --optional
+    static_pairs = {
+        ['www.baidu.com'] = &quot;103.235.47.188&quot;
+    } --optional
+}
+
+</code></pre>
+<p>Direct,OptDirect,BindDialer,OptDialer 都可加此块。</p>
+<p>ip_strategy 的可能的值：</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub enum LookupIpStrategy {
+    Ipv4Only,
+    Ipv6Only,
+    Ipv4AndIpv6,
+    Ipv6thenIpv4,
+    Ipv4thenIpv6,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>不给出时，默认为 Ipv4thenIpv6</p>
+<h2 id="sockopt"><a class="header" href="#sockopt">SockOpt</a></h2>
+<pre><code class="language-lua">sockopt = {
+    tproxy = true,
+    so_mark = 255,
+    bind_to_device = &quot;en0&quot;,
+}
+</code></pre>
+<p>三项都是可选的</p>
+<p>tproxy 为 true时表示 开启 tproxy 功能</p>
+<p>so_mark 从0 到 255.</p>
+<p>bind_to_device 的一些可能的值：</p>
+<p>-- enp0s1(linux 的一般情况)
+-- en0  (macos 的情况)
+-- WLAN( windows, 用wifi联网的情况)</p>
+<h2 id="ext"><a class="header" href="#ext">Ext</a></h2>
+<p>Listener,TcpOptListener, BindDialer, Stdio, Fileio 都能如此配置 ext</p>
+<pre><code class="language-lua">ext = {
+    fixed_target_addr = &quot;udp://8.8.8.8:53&quot;,
+    pre_defined_early_data = &quot;abcde&quot;
+}
+</code></pre>
+<p>ext 是 extension 的缩写, 是指定一些额外配置, 内部的项都是可选的, ext 本身也是可选的</p>
+<p>fixed_target_addr 一旦设置，意味着 该Map的实际的 代理目标 是指定的值。</p>
+<p>常见用例是转发 udp 流量，比如为自己的 出口设置不同的 dns：</p>
+<p>listen 一个 本地的 udp 端口 (a), 指定 ext.fixed_target_addr (b), 其为实际想要的dns服务器
+然后将 这个listen 所在的链  route 到一个 与远程服务器连接 的 链1上。</p>
+<p>之后在自己的 Direct 的 dns_client 中的 dns_server_list 中添加 a, 这样就可以
+将所有direct 中用到的dns解析都实际 通过 链1 发送到 服务端，服务端 再将 dns信息发到 fixed_target_addr</p>
+<p>这就是 一些代理中的 &quot;dokodemo&quot; 的逻辑.</p>
+<h2 id="httpcommonconfig"><a class="header" href="#httpcommonconfig">httpCommonConfig</a></h2>
+<pre><code class="language-lua"> {
+    authority = &quot;www.myhost.com&quot;,
+    path = &quot;/ruci_jiandan&quot;,
+
+    method = &quot;GET&quot;,--optional
+    scheme = &quot;https&quot;,--optional
+    headers= { [&quot;header1&quot;] = &quot;value1&quot;, [&quot;header2&quot;] = &quot;value2&quot;, },--optional
+}
+</code></pre>
+<h1 id="接下来"><a class="header" href="#接下来">接下来</a></h1>
+<p>现在再读 dev_res/local.lua 就会轻松很多了。</p>
+<p>学点难的？
+<a href="infinite.html">Infinite</a></p>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../lua/config_intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../lua/route_config.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../lua/config_intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../lua/route_config.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../theme/pagetoc.js"></script>
+
+
+    </div>
+    </body>
+</html>
