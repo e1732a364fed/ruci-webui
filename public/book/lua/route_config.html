@@ -1,0 +1,322 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Route Config - ruci_manual</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../theme/pagetoc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> 欢迎</a></li><li class="chapter-item expanded "><a href="../get_started.html"><strong aria-hidden="true">2.</strong> 入门</a></li><li class="chapter-item expanded "><a href="../app/cmd.html"><strong aria-hidden="true">3.</strong> ruci-cmd程序</a></li><li class="chapter-item expanded "><a href="../app/subscribe.html"><strong aria-hidden="true">4.</strong> 订阅</a></li><li class="chapter-item expanded "><a href="../lua/lua.html"><strong aria-hidden="true">5.</strong> lua配置</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../lua/config_intro.html"><strong aria-hidden="true">5.1.</strong> Config入门</a></li><li class="chapter-item expanded "><a href="../lua/map_config.html"><strong aria-hidden="true">5.2.</strong> MapConfig</a></li><li class="chapter-item expanded "><a href="../lua/route_config.html" class="active"><strong aria-hidden="true">5.3.</strong> Route Config</a></li><li class="chapter-item expanded "><a href="../lua/infinite.html"><strong aria-hidden="true">5.4.</strong> Infinite</a></li></ol></li><li class="chapter-item expanded "><a href="../lua/user_defined_protocol.html"><strong aria-hidden="true">6.</strong> lua自定义协议</a></li><li class="chapter-item expanded "><a href="../json.html"><strong aria-hidden="true">7.</strong> json配置</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">ruci_manual</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/e1732a364fed/ruci/" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <p>现在我们学习 Config 中几种 route 块的写法:</p>
+<pre><code class="language-lua">
+routes = {
+    tag_route = {},
+    fallback_route = {},
+    clash_rules = &quot;the_clash_rules.yaml&quot;,
+    geosite = &quot;mygeosite_file_name.mmdb&quot;,
+    geosite_gfw = {}
+}
+</code></pre>
+<p>所有 route 都会用到 chain 的 <code>tag</code>
+所以我们要求每一条inbound 都要有一个 tag, 每一个 inbound 中的 chain 都要有至少一个 map</p>
+<h1 id="tag_route"><a class="header" href="#tag_route">tag_route</a></h1>
+<pre><code class="language-lua">    tag_route = { { &quot;l1&quot;, &quot;d1&quot; }, { &quot;l2&quot;, &quot;d2&quot; }, { &quot;l3&quot;, &quot;d2&quot; } },
+</code></pre>
+<p>tag_route 是一个 字符串对 的列表。对中前者为 inbound 的 tag, 后者为 outbound 的 tag。</p>
+<p>这是一种固定的 路由模式，只要来自 l1 的 都会被发到 d1.</p>
+<h1 id="fallback_route"><a class="header" href="#fallback_route">fallback_route</a></h1>
+<p>首先学一下什么是 fallback. </p>
+<p>在一个 inbound的 chain 中，有序地排列着多个 InMapConfig, 即它们代表着多个 Map,
+分别记为 map1, map2. 假设 map1 通过了，但 map2 的协议 逻辑检查失败，即 map2
+检查数据，发现和 map2 对应的 协议所定义的 特征不一致，那么此时 整个 chain 就此中断。</p>
+<p>如果就这样，一般的情况就是 在 log 中记录一下此次 异常情况, 然后继续 监听 其它请求。</p>
+<p>但是，有时，map2 错了，我们依然认为 它是一个有效的 map1, 想要 将它转发到一个新的
+outbound 上，此时就用到了 fallback_route. 这整个行为就叫 fallback.</p>
+<p>没错。这个就是 trojan 协议的 精髓。</p>
+<pre><code class="language-lua">    fallback_route = { { &quot;listen1&quot;, &quot;fallback_dial1&quot; } }
+
+</code></pre>
+<p>fallback_route 是一个 字符串对 的列表。上面示例就是表示 inbound chain &quot;listen1&quot; 里失败的地方将被转发到 
+outbound chain &quot;fallback_dial1&quot; 中。listen1 和 fallback_dial1 是它们的 tag.</p>
+<h1 id="clash_rules"><a class="header" href="#clash_rules">clash_rules</a></h1>
+<p>0.0.8开始，ruci 支持了clash 的分流规则的使用。clash 是一个知名的app, 它的规则被用得很多</p>
+<p>一般直接写为 clash_rules = &quot;myfile.yaml&quot;</p>
+<p>然后在 myfile.yaml 中，按 clash 配置文件中的 rules 项进行书写，如写成：</p>
+<pre><code class="language-yaml">rules:
+  - DOMAIN-SUFFIX,ip6-localhost,Direct
+  - DOMAIN-SUFFIX,ip6-loopback,Direct
+  - DOMAIN-SUFFIX,lan,Direct
+  - DOMAIN-SUFFIX,local,Direct
+  - DOMAIN-SUFFIX,localhost,Direct
+  - DOMAIN-KEYWORD,baidu,Reject
+</code></pre>
+<p>就行了</p>
+<p>ruci 支持所有 clash 中定义的 规则，而且有算法加速支持，匹配得很快！</p>
+<p>您还可以直接把 yaml 的内容传入 clash_rules 项，但是不太建议这么做：</p>
+<pre><code class="language-lua">clash_rules = &quot;rules:\n  - DOMAIN-SUFFIX,ip6-localhost,Direct&quot;
+</code></pre>
+<p>好处就是可以一个配置文件全搞定</p>
+<h1 id="geosite"><a class="header" href="#geosite">geosite</a></h1>
+<p>配置 geosite 的 mmdb 是用于 clash_rules的。也就是说，配置了 geosite后，clash_rules中的 GEOSITE 规则就生效了</p>
+<p>可以运行 ruci-cmd utils 中的 对应命令来下载 geosite 文件</p>
+<h1 id="geosite_gfw"><a class="header" href="#geosite_gfw">geosite_gfw</a></h1>
+<p>https://github.com/e1732a364fed/geosite-gfw</p>
+<pre><code>geosite_gfw = {
+    api_url = &quot;http://127.0.0.1:5134/check&quot;,
+    proxy = &quot;127.0.0.1:10800&quot;,
+    only_proxy = false,
+    ok_ban_out_tag = { &quot;Direct&quot;, &quot;Reject&quot;}
+}
+</code></pre>
+<p>geosite_gfw 是一个 人工智能 gfw项目，它用过机器学习训练出的模型来判断一个 域名 倒底是会被墙还是 可以直连</p>
+<p>主要用于 local 本地端进行分流。</p>
+<p>proxy 选项若给出，则 geosite_gfw 会在访问不到目标地址时，使用 proxy 再访问一次。
+而 若 only_proxy = true, 则 geosite_gfw 第一次方问目标地址就会使用 该 proxy.</p>
+<p>注意，如果您配置 geosite_gfw 的 proxy 又指向回 我们的 ruci 的监听端口的话，要确保按上文的 
+tag_route 把该端口的监听强制导向某 outbound, 避免再次进竹 geosite_gfw 环节 造成 回环。</p>
+<p>目前的geosite_gfw 的运行方式:</p>
+<pre><code class="language-sh">git clone https://github.com/e1732a364fed/geosite-gfw/
+cd geosite-gfw
+pip3 install transformers numpy scikit-learn flask requests
+pip3 install torch
+
+curl -LO &quot;https://huggingface.co/e1732a364fed/geosite-gfw/resolve/main/bert_geosite_by_body.zip?download=true&quot;
+curl -LO &quot;https://huggingface.co/e1732a364fed/geosite-gfw/resolve/main/bert_geosite_by_head.zip?download=true&quot;
+
+tar -xf bert_geosite_by_body.zip
+tar -xf bert_geosite_by_head.zip
+
+python3 classify.py --mode serve_api --port 5134
+</code></pre>
+<p>之后在 ruci 的 routes 中使用 geosite_gfw 就能生效啦。</p>
+<h1 id="接下来"><a class="header" href="#接下来">接下来</a></h1>
+<p>学点难的？
+<a href="infinite.html">Infinite</a></p>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../lua/map_config.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../lua/infinite.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../lua/map_config.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../lua/infinite.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../theme/pagetoc.js"></script>
+
+
+    </div>
+    </body>
+</html>

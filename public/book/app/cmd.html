@@ -1,0 +1,347 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ruci-cmd程序 - ruci_manual</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../theme/pagetoc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> 欢迎</a></li><li class="chapter-item expanded "><a href="../get_started.html"><strong aria-hidden="true">2.</strong> 入门</a></li><li class="chapter-item expanded "><a href="../app/cmd.html" class="active"><strong aria-hidden="true">3.</strong> ruci-cmd程序</a></li><li class="chapter-item expanded "><a href="../app/subscribe.html"><strong aria-hidden="true">4.</strong> 订阅</a></li><li class="chapter-item expanded "><a href="../lua/lua.html"><strong aria-hidden="true">5.</strong> lua配置</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../lua/config_intro.html"><strong aria-hidden="true">5.1.</strong> Config入门</a></li><li class="chapter-item expanded "><a href="../lua/map_config.html"><strong aria-hidden="true">5.2.</strong> MapConfig</a></li><li class="chapter-item expanded "><a href="../lua/route_config.html"><strong aria-hidden="true">5.3.</strong> Route Config</a></li><li class="chapter-item expanded "><a href="../lua/infinite.html"><strong aria-hidden="true">5.4.</strong> Infinite</a></li></ol></li><li class="chapter-item expanded "><a href="../lua/user_defined_protocol.html"><strong aria-hidden="true">6.</strong> lua自定义协议</a></li><li class="chapter-item expanded "><a href="../json.html"><strong aria-hidden="true">7.</strong> json配置</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">ruci_manual</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/e1732a364fed/ruci/" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <p>命令行参数 与 程序运行</p>
+<h1 id="综述"><a class="header" href="#综述">综述</a></h1>
+<p>我们 ruci 的可执行文件是 ruci-cmd.</p>
+<p>所使用的配置文件的格式 可以是 lua (<a href="./lua/lua.html">lua配置</a>), 也可以是 json 
+).</p>
+<p>lua配置更难写一些，但是更灵活一些。 json 配置更简单一些，但其功能则更少一些。</p>
+<h2 id="静态链动态链"><a class="header" href="#静态链动态链">静态链、动态链</a></h2>
+<p>ruci 中引入了 “静态链、动态链” 的概念。这两个概念在ruci中至关重要，因此有必要先对其 有一个基本了解。</p>
+<p>静态链就是传统的代理的配置方式，而 动态链 则是一种更高级的概念。</p>
+<p>json 配置和基本的 lua配置都是 静态链配置.</p>
+<p>而lua配置中还可以通过一些方式开启 动态链的配置。对于新手来说，先把静态链的写法学会就行了。</p>
+<h1 id="运行方式"><a class="header" href="#运行方式">运行方式</a></h1>
+<p>本地运行:</p>
+<pre><code>./ruci-cmd -c local.lua
+</code></pre>
+<p>或</p>
+<pre><code>./ruci-cmd -c local.json
+</code></pre>
+<p>服务器运行:</p>
+<pre><code>./ruci-cmd -c remote.lua
+</code></pre>
+<p>或</p>
+<pre><code>./ruci-cmd -c remote.json
+</code></pre>
+<p>macOS 版本要在 系统App：Settings - Privacy &amp; Security 里 allow 一下。
+或者运行 <code>xattr -c ruci-cmd</code></p>
+<p>ruci-cmd 会在 下面文件夹中 找 指定的 配置文件</p>
+<pre><code>&quot;./&quot;,
+&quot;ruci_config/&quot;,
+&quot;resource/&quot;,
+&quot;dev_res/&quot;
+</code></pre>
+<p>因此如果不想使用 默认打包的 resource 文件夹，可以将其改名为 resource_default, 
+然后 自己创建一个 ruci_config 文件夹，将自己的配置放在 ruci_config 中，这样
+就不会产生混淆</p>
+<p>另外，配置文件名称是可以自定义的，不一定要叫 local.lua 或 remote.lua, 这只是
+一种命名习惯而已。</p>
+<h1 id="日志"><a class="header" href="#日志">日志</a></h1>
+<p>ruci-cmd 运行时产生的日志会自动创建并放在 logs 文件夹中, daily rolling</p>
+<p>为了调整日志的等级，在运行参数中 有 两种选择：使用命令行参数 或者使用 环境变量</p>
+<h2 id="命令行参数法"><a class="header" href="#命令行参数法">命令行参数法</a></h2>
+<p>-l, --log-level &lt;LOG_LEVEL&gt;</p>
+<p>可为 ERROR, WARN, INFO , DEBUG, TRACE
+小写也可以。</p>
+<h2 id="环境变量法"><a class="header" href="#环境变量法">环境变量法</a></h2>
+<p>环境变量法比较高级：</p>
+<p>在命令的开头加上</p>
+<pre><code>RUST_LOG=none,ruci=debug 
+</code></pre>
+<p>如</p>
+<pre><code>RUST_LOG=none,ruci=debug ./ruci-cmd -c local.lua
+</code></pre>
+<p>如果是powershell就是加上</p>
+<pre><code>$Env:RUST_LOG=&quot;none,ruci=debug&quot;;
+</code></pre>
+<p>如</p>
+<pre><code>$Env:RUST_LOG=&quot;none,ruci=debug&quot;; .\ruci-cmd.exe -c local.lua
+</code></pre>
+<p>这么写 的效果是：过滤 log, 对其它依赖包的 日志通通不要，只留 ruci 包自己的日志</p>
+<h1 id="utils-工具包"><a class="header" href="#utils-工具包">utils 工具包</a></h1>
+<p>ruci-cmd 提供了一些很方便的命令，可以执行一些辅助功能。</p>
+<h2 id="生成自签名根证书"><a class="header" href="#生成自签名根证书">生成自签名根证书</a></h2>
+<pre><code>./ruci-cmd utils gen-cer localhost www.mytest.com
+</code></pre>
+<p>会生成 generated_crt_and_key.crt</p>
+<h2 id="下载外部依赖资源"><a class="header" href="#下载外部依赖资源">下载外部依赖资源</a></h2>
+<pre><code>./ruci-cmd utils mmdb
+
+./ruci-cmd utils wintun
+</code></pre>
+<h2 id="配置文件格式转换"><a class="header" href="#配置文件格式转换">配置文件格式转换：</a></h2>
+<p>ruci-cmd utils convert-format &lt;INPUT_FILE&gt; &lt;OUTPUT_FORMAT&gt;
+如
+ruci-cmd utils convert-format local.lua json</p>
+<p>(lua, json) 几种格式在静态链下是可以互相转换的</p>
+<p>转后就会生成 local.json. 如果同名文件存在，就会自动用一个新的名称，不会覆盖。</p>
+<p>而且也可以  转换为同格式 ，相当于把 注释删掉然后 标准化一下</p>
+<h2 id="简易文件服务器"><a class="header" href="#简易文件服务器">简易文件服务器</a></h2>
+<pre><code>./ruci-cmd utils serve-folder
+./ruci-cmd utils serve-folder 0.0.0.0:12345
+</code></pre>
+<p>serve-folder 命令 会将 ruci-cmd 当前工作目录下的 &quot;static&quot; 文件夹 作为 文件服务器的根路径。</p>
+<p>它不会对用户打印出 static 文件夹中的任何文件，而只有当访问 static 中的用户指定的子文件夹时，才会显示其子文件夹的内容。
+这样就保护了根路径的内容。</p>
+<p>这个文件夹名不可更改，这是为了防止错误地将私密文件暴露。</p>
+<p>如果不给出监听地址，会自动监听 &quot;0.0.0.0:18143&quot;。</p>
+<h3 id="示例链接"><a class="header" href="#示例链接">示例链接</a></h3>
+<p>查看目录
+http://0.0.0.0:18143/folder1</p>
+<p>下载
+http://0.0.0.0:18143/download/folder1/file1.zip</p>
+<h2 id="打包"><a class="header" href="#打包">打包</a></h2>
+<pre><code>./ruci-cmd utils pack folder1
+./ruci-cmd utils pack-z folder1
+</code></pre>
+<p>pack 和 pack-z 命令 可以对工作目录下的指定文件夹 进行打包。</p>
+<p>pack是打包为 tar 文件， pack-z 是在打包为 tar.zip 文件。</p>
+<p>它会计算 打包好的 tar 文件的 md5 hash, 并将 该 md5 作为 tar 文件的文件名。</p>
+<p>如果是 pack-z, 其依然使用 tar 的 md5 作为 文件名，而不是 zip 的 md5。</p>
+<h2 id="lua-命令行"><a class="header" href="#lua-命令行">lua 命令行</a></h2>
+<pre><code>./ruci-cmd utils repl
+</code></pre>
+<p>该命令可以启用一个 lua repl (read, execute, print, loop), 用户可以在里面执行一些lua代码。</p>
+<h1 id="高级用法"><a class="header" href="#高级用法">高级用法</a></h1>
+<p>lua配置使用 infinite:</p>
+<pre><code>./ruci-cmd -c local.lua --infinite
+</code></pre>
+<p>运行配置的同时 开启 api-server:</p>
+<pre><code>./ruci-cmd -c remote.lua -a 
+</code></pre>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../get_started.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../app/subscribe.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../get_started.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../app/subscribe.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../theme/pagetoc.js"></script>
+
+
+    </div>
+    </body>
+</html>
